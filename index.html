@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excuse Buster — Banish Procrastination Instantly</title>
+  
+  <!-- Premium Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Phosphor Icons (Light Weight) -->
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  
+  <!-- Core Styles -->
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <!-- Fixed Noise Overlay for Physical Texture -->
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <!-- Glow Backdrop Effects -->
+  <div class="glow-orb glow-orb-1" aria-hidden="true"></div>
+  <div class="glow-orb glow-orb-2" aria-hidden="true"></div>
+
+  <div class="app-wrapper">
+    <!-- Top Fluid Navigation/Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <span class="logo-icon"><i class="ph-light ph-fire"></i></span>
+        <h1 class="logo-text">Excuse<span>Buster</span></h1>
+      </div>
+      
+      <div class="header-actions">
+        <!-- Odometer-style counter wrapper -->
+        <div class="odometer-container" id="odometer-wrapper" title="Excuses busted so far!">
+          <span class="odometer-label">Busted</span>
+          <div class="odometer-digits" id="busted-counter">
+            <span class="digit">0</span>
+            <span class="digit">0</span>
+            <span class="digit">0</span>
+          </div>
+        </div>
+        
+        <!-- API Settings Trigger -->
+        <button class="icon-btn" id="btn-settings" aria-label="Settings">
+          <i class="ph-light ph-gear"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="app-main">
+      <!-- Welcome Eyebrow -->
+      <div class="welcome-eyebrow-container">
+        <span class="eyebrow-tag">AI-Powered Coach</span>
+        <h2 class="main-heading">Procrastination stops now.</h2>
+        <p class="main-subheading">Type the small excuse holding you back. Get Called Out. Take Action.</p>
+      </div>
+
+      <!-- Excuse Input Area - Double Bezel Architecture -->
+      <section class="double-bezel-outer input-section">
+        <div class="double-bezel-inner">
+          <form id="excuse-form" novalidate>
+            <div class="input-group">
+              <label for="excuse-input" class="sr-only">What excuse are you making today?</label>
+              <textarea 
+                id="excuse-input" 
+                placeholder="e.g., I'll start the gym next week..." 
+                maxlength="280" 
+                required
+              ></textarea>
+              <div class="char-count"><span id="char-current">0</span>/280</div>
+            </div>
+
+            <!-- Personality Mode Selectors -->
+            <div class="tone-selectors">
+              <span class="section-label">Select Coach Tone:</span>
+              <div class="tone-options-grid">
+                <button type="button" class="tone-btn active" data-tone="coach" id="tone-coach">
+                  <span class="tone-icon"><i class="ph-light ph-heart"></i></span>
+                  <span class="tone-text">Warm Coach</span>
+                </button>
+                <button type="button" class="tone-btn" data-tone="brutal" id="tone-brutal">
+                  <span class="tone-icon"><i class="ph-light ph-skull"></i></span>
+                  <span class="tone-text">Brutal Truth</span>
+                </button>
+                <button type="button" class="tone-btn" data-tone="funny" id="tone-funny">
+                  <span class="tone-icon"><i class="ph-light ph-smiley"></i></span>
+                  <span class="tone-text">Funny Roast</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Primary Action Button with Island trailing icon -->
+            <button type="submit" class="primary-cta-btn" id="btn-bust">
+              <span class="btn-label">Bust Procrastination</span>
+              <span class="btn-icon-wrapper">
+                <i class="ph-light ph-arrow-right"></i>
+              </span>
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Results Display Panel - Double Bezel Architecture (Initially Hidden) -->
+      <section class="double-bezel-outer result-section hidden" id="result-panel">
+        <div class="double-bezel-inner" id="result-card-inner">
+          
+          <!-- Decorative Status Header -->
+          <div class="card-status-header">
+            <span class="status-indicator"></span>
+            <span class="status-label" id="status-tag">Excuse Busted Successfully</span>
+          </div>
+
+          <!-- Busted Output Grid -->
+          <div class="result-grid">
+            <!-- Part 1: The Named Excuse -->
+            <div class="result-block" id="block-excuse">
+              <div class="block-eyebrow"><i class="ph-light ph-tag"></i> The Real Excuse</div>
+              <h3 class="block-value" id="res-excuse">Fear of Discomfort</h3>
+            </div>
+
+            <!-- Part 2: The Callout -->
+            <div class="result-block" id="block-callout">
+              <div class="block-eyebrow"><i class="ph-light ph-megaphone"></i> The Callout</div>
+              <p class="block-value text-body" id="res-callout">Waiting for "next week" is a silent contract with failure. You aren't busy; you're just avoiding the initial friction. That friction never goes away by waiting.</p>
+            </div>
+
+            <!-- Part 3: The Action -->
+            <div class="result-block block-highlight" id="block-action">
+              <div class="block-eyebrow"><i class="ph-light ph-play-circle"></i> 5-Minute Action</div>
+              <p class="block-value text-action" id="res-action">Put your sneakers on right now. Don't think about the gym. Just tie your shoes.</p>
+            </div>
+          </div>
+
+          <!-- Sharing and Action Footer -->
+          <div class="result-actions">
+            <button class="secondary-btn" id="btn-copy">
+              <i class="ph-light ph-copy"></i>
+              <span>Copy Response</span>
+            </button>
+            <button class="secondary-btn" id="btn-download">
+              <i class="ph-light ph-download-simple"></i>
+              <span>Download Card</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer Information -->
+    <footer class="app-footer">
+      <p>Built as an agency-grade agentic experience • Excuse Buster © 2026</p>
+    </footer>
+  </div>
+
+  <!-- API Settings Modal Dialog -->
+  <div class="modal-overlay hidden" id="settings-modal">
+    <div class="modal-container double-bezel-outer">
+      <div class="modal-content double-bezel-inner">
+        <div class="modal-header">
+          <h2>API Configuration</h2>
+          <button class="close-btn" id="btn-close-settings" aria-label="Close settings">
+            <i class="ph-light ph-x"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="settings-intro">Select your AI engine. Default uses local offline simulation for instant testing.</p>
+          
+          <form id="settings-form">
+            <!-- Engine Selection Group -->
+            <div class="form-group">
+              <label class="form-label">AI Processing Engine</label>
+              <div class="engine-selector-grid">
+                <label class="engine-option-card">
+                  <input type="radio" name="engine" value="mock" checked id="engine-mock">
+                  <div class="engine-option-content">
+                    <span class="engine-icon"><i class="ph-light ph-cpu"></i></span>
+                    <span class="engine-title">Local Simulator</span>
+                    <span class="engine-desc">No keys required</span>
+                  </div>
+                </label>
+                
+                <label class="engine-option-card">
+                  <input type="radio" name="engine" value="gemini" id="engine-gemini">
+                  <div class="engine-option-content">
+                    <span class="engine-icon"><i class="ph-light ph-sparkle"></i></span>
+                    <span class="engine-title">Gemini API</span>
+                    <span class="engine-desc">1.5 Flash Model</span>
+                  </div>
+                </label>
+
+                <label class="engine-option-card">
+                  <input type="radio" name="engine" value="openai" id="engine-openai">
+                  <div class="engine-option-content">
+                    <span class="engine-icon"><i class="ph-light ph-brain"></i></span>
+                    <span class="engine-title">OpenAI API</span>
+                    <span class="engine-desc">GPT-4o Mini</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- API Key Fields (Conditional) -->
+            <div class="form-group api-key-group hidden" id="api-key-container">
+              <label for="api-key-input" class="form-label" id="api-key-label">API Key</label>
+              <div class="api-key-input-wrapper">
+                <input 
+                  type="password" 
+                  id="api-key-input" 
+                  placeholder="Paste your API key here..."
+                  autocomplete="off"
+                >
+                <button type="button" class="toggle-password-btn" id="btn-toggle-password" aria-label="Toggle Password Visibility">
+                  <i class="ph-light ph-eye"></i>
+                </button>
+              </div>
+              <span class="field-help" id="api-key-help">Stored locally in your browser's LocalStorage. Never leaves your client.</span>
+            </div>
+
+            <!-- Save Action -->
+            <button type="submit" class="primary-cta-btn" id="btn-save-settings">
+              <span class="btn-label">Save Configurations</span>
+              <span class="btn-icon-wrapper">
+                <i class="ph-light ph-check"></i>
+              </span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offscreen canvas for generating download cards -->
+  <canvas id="share-card-canvas" style="display: none;"></canvas>
+
+  <!-- Core Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
