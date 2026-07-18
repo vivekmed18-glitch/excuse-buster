@@ -392,7 +392,8 @@ const elements = {
   valGym: document.getElementById('val-gym'),
   valCoding: document.getElementById('val-coding'),
   valClean: document.getElementById('val-clean'),
-  valGeneric: document.getElementById('val-generic')
+  valGeneric: document.getElementById('val-generic'),
+  btnRebust: document.getElementById('btn-rebust')
 };
 
 // --- Local Storage Analytics Module ---
@@ -883,6 +884,43 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   return currentY;
 }
 
+// Sleek glassmorphic notification banner
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  
+  const toast = document.createElement('div');
+  toast.className = `toast-message toast-${type}`;
+  
+  let icon = 'ph-info';
+  if (type === 'error') icon = 'ph-warning-circle';
+  if (type === 'success') icon = 'ph-check-circle';
+  
+  toast.innerHTML = `<i class="ph-light ${icon}" style="font-size: 16px;"></i> <span>${message}</span>`;
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    toast.addEventListener('transitionend', () => {
+      toast.remove();
+    });
+  }, 4000);
+}
+
+// Clean and parse markdown code blocks or invalid JSON
+function parseRobustJSON(text) {
+  let clean = text.trim();
+  if (clean.includes('```')) {
+    const match = clean.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (match && match[1]) {
+      clean = match[1].trim();
+    } else {
+      clean = clean.replace(/```(?:json)?/g, '').replace(/```/g, '').trim();
+    }
+  }
+  return JSON.parse(clean);
+}
+
 function classifyExcuseLocally(text) {
   const clean = text.toLowerCase();
   if (clean.includes('gym') || clean.includes('workout') || clean.includes('exercise') || clean.includes('run') || clean.includes('fit') || clean.includes('sport') || clean.includes('cardio')) {
@@ -976,7 +1014,7 @@ async function callGeminiAPI(excuseText, tone, apiKey) {
 
   const result = await response.json();
   const rawText = result.candidates[0].content.parts[0].text;
-  return JSON.parse(rawText.trim());
+  return parseRobustJSON(rawText);
 }
 
 // Call OpenAI API (using client-side fetch)
@@ -1014,7 +1052,7 @@ async function callOpenAIAPI(excuseText, tone, apiKey) {
 
   const result = await response.json();
   const rawText = result.choices[0].message.content;
-  return JSON.parse(rawText.trim());
+  return parseRobustJSON(rawText);
 }
 
 // Open / Close Analytics Dashboard
@@ -1158,10 +1196,17 @@ async function handleFormSubmit(e) {
         throw new Error(`API key required for ${state.apiEngine.toUpperCase()} engine. Please configure it in Settings.`);
       }
       
-      if (state.apiEngine === 'gemini') {
-        result = await callGeminiAPI(excuseText, state.selectedTone, state.apiKey);
-      } else if (state.apiEngine === 'openai') {
-        result = await callOpenAIAPI(excuseText, state.selectedTone, state.apiKey);
+      try {
+        if (state.apiEngine === 'gemini') {
+          result = await callGeminiAPI(excuseText, state.selectedTone, state.apiKey);
+        } else if (state.apiEngine === 'openai') {
+          result = await callOpenAIAPI(excuseText, state.selectedTone, state.apiKey);
+        }
+      } catch (apiErr) {
+        console.warn("Primary API failed, falling back to local database:", apiErr);
+        showToast(`API error: ${apiErr.message}. Swapping to local offline engine.`, 'error');
+        await new Promise(r => setTimeout(r, 600));
+        result = generateMockResponse(excuseText, state.selectedTone);
       }
     }
     
@@ -1234,7 +1279,7 @@ async function handleFormSubmit(e) {
     Analytics.trackBust(excuseText);
     
   } catch (err) {
-    alert(`Error: ${err.message}`);
+    showToast(`Error: ${err.message}`, 'error');
   } finally {
     elements.btnBust.classList.remove('glitch-active');
     elements.btnBust.disabled = false;
@@ -1457,5 +1502,17 @@ elements.analyticsModal.addEventListener('click', (e) => {
 });
 
 elements.form.addEventListener('submit', handleFormSubmit);
+
+// Re-Bust / Regenerate button click listener
+if (elements.btnRebust) {
+  elements.btnRebust.addEventListener('click', () => {
+    SynthAudio.playClick();
+    elements.input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => {
+      handleFormSubmit(new Event('submit'));
+    }, 450); // Let the scroll complete
+  });
+  elements.btnRebust.addEventListener('mouseenter', () => SynthAudio.playTick());
+}
 
 init();

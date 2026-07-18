@@ -182,6 +182,10 @@
               <i class="ph-light ph-bell"></i>
               <span>Remind Me</span>
             </button>
+            <button class="secondary-btn" id="btn-rebust" style="grid-column: 1 / -1; background: rgba(255, 255, 255, 0.03); border-color: var(--border-highlight);" title="Regenerate another response">
+              <i class="ph-light ph-arrows-counter-clockwise"></i>
+              <span>Regenerate Response</span>
+            </button>
           </div>
         </div>
       </section>
@@ -200,6 +204,9 @@
       <p>Built as an agency-grade agentic experience • Excuse Buster © 2026</p>
     </footer>
   </div>
+
+  <!-- Floating Toast Notification Container -->
+  <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none;"></div>
 
   <!-- API Settings Modal Dialog -->
   <div class="modal-overlay hidden" id="settings-modal">

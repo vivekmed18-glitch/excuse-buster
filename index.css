@@ -1320,5 +1320,53 @@ textarea::placeholder {
   margin-bottom: 12px;
 }
 
+/* --- Floating Toast Notifications --- */
+.toast-message {
+  pointer-events: auto;
+  background: rgba(13, 16, 27, 0.9);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px var(--accent-active-glow);
+  padding: 12px 20px;
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: toastReveal 0.35s var(--ease-out-back) forwards;
+  max-width: 320px;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.toast-message.toast-error {
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(239, 68, 68, 0.15);
+}
+
+.toast-message.toast-error i {
+  color: var(--accent-crimson);
+}
+
+.toast-message.toast-success i {
+  color: var(--accent-emerald);
+}
+
+.toast-message.toast-info i {
+  color: var(--accent-active);
+}
+
+@keyframes toastReveal {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.toast-message.fade-out {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+
 
 
