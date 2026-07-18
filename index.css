@@ -308,23 +308,46 @@ body {
 
 /* --- Double Bezel Nested Card Architecture --- */
 .double-bezel-outer {
-  background: var(--bg-card-outer);
-  border: 1px solid var(--border-color);
-  padding: 6px;
+  background: linear-gradient(135deg, rgba(20, 24, 38, 0.8) 0%, rgba(10, 12, 22, 0.8) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 5px;
   border-radius: 28px;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: 
+    0 25px 55px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
   margin-bottom: 32px;
-  transition: border-color var(--transition-medium);
+  transition: border-color var(--transition-medium), box-shadow var(--transition-medium);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  position: relative;
+  overflow: hidden;
+}
+
+.double-bezel-outer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
 }
 
 .double-bezel-inner {
-  background: var(--bg-card);
+  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.015) 0%, rgba(255, 255, 255, 0.005) 100%), rgba(13, 16, 27, 0.45);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid var(--border-color-inner);
-  border-radius: calc(28px - 6px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: calc(28px - 5px);
   padding: 32px;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.05);
+  box-shadow: 
+    inset 0 2px 4px rgba(255, 255, 255, 0.03),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.6),
+    0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 /* --- Form Fields & Interaction --- */
@@ -395,26 +418,44 @@ textarea::placeholder {
   width: 58px;
   height: 58px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px solid var(--border-color);
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 70%, rgba(0, 0, 0, 0.45) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   color: var(--text-secondary);
   font-size: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
   transition: transform var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast), color var(--transition-fast);
   box-shadow: 
-    inset 1px 1px 2px rgba(255, 255, 255, 0.05),
-    inset -2px -2px 4px rgba(0, 0, 0, 0.5),
-    0 4px 10px rgba(0, 0, 0, 0.2);
+    inset 2px 2px 4px rgba(255, 255, 255, 0.08),
+    inset -3px -3px 6px rgba(0, 0, 0, 0.6),
+    0 8px 16px rgba(0, 0, 0, 0.35);
+}
+
+.tone-circle-btn::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  height: 40%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 100%);
+  border-radius: 50% 50% 15% 15%;
+  pointer-events: none;
 }
 
 .tone-circle-btn:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 70%, rgba(0, 0, 0, 0.45) 100%);
+  border-color: rgba(255, 255, 255, 0.2);
   color: var(--text-primary);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 
+    inset 2px 2px 4px rgba(255, 255, 255, 0.12),
+    inset -3px -3px 6px rgba(0, 0, 0, 0.5),
+    0 10px 20px rgba(0, 0, 0, 0.4);
 }
 
 .tone-circle-btn:active {
@@ -425,35 +466,38 @@ textarea::placeholder {
 }
 
 .tone-circle-btn.active {
-  background: rgba(var(--accent-active-rgb, 245, 158, 11), 0.06);
+  background: radial-gradient(circle at 30% 30%, rgba(245, 158, 11, 0.3) 0%, rgba(245, 158, 11, 0.08) 70%, rgba(0, 0, 0, 0.5) 100%);
   border-color: var(--accent-active);
   color: var(--accent-active);
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-4px) scale(1.06);
   box-shadow: 
-    inset 1px 1px 3px rgba(255, 255, 255, 0.1),
-    0 0 15px var(--accent-active-glow),
-    0 4px 12px rgba(0, 0, 0, 0.3);
+    inset 2px 2px 5px rgba(255, 255, 255, 0.25),
+    inset -3px -3px 6px rgba(0, 0, 0, 0.7),
+    0 0 25px var(--accent-active-glow),
+    0 10px 20px rgba(0, 0, 0, 0.4);
 }
 
 /* Tone specific active indicator overrides */
 .tone-circle-btn[data-tone="brutal"].active {
-  background: rgba(239, 68, 68, 0.06);
+  background: radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.08) 70%, rgba(0, 0, 0, 0.5) 100%);
   border-color: var(--accent-crimson);
   color: var(--accent-crimson);
   box-shadow: 
-    inset 1px 1px 3px rgba(255, 255, 255, 0.1),
-    0 0 15px var(--accent-crimson-glow),
-    0 4px 12px rgba(0, 0, 0, 0.3);
+    inset 2px 2px 5px rgba(255, 255, 255, 0.25),
+    inset -3px -3px 6px rgba(0, 0, 0, 0.7),
+    0 0 25px var(--accent-crimson-glow),
+    0 10px 20px rgba(0, 0, 0, 0.4);
 }
 
 .tone-circle-btn[data-tone="funny"].active {
-  background: rgba(16, 185, 129, 0.06);
+  background: radial-gradient(circle at 30% 30%, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.08) 70%, rgba(0, 0, 0, 0.5) 100%);
   border-color: var(--accent-emerald);
   color: var(--accent-emerald);
   box-shadow: 
-    inset 1px 1px 3px rgba(255, 255, 255, 0.1),
-    0 0 15px var(--accent-emerald-glow),
-    0 4px 12px rgba(0, 0, 0, 0.3);
+    inset 2px 2px 5px rgba(255, 255, 255, 0.25),
+    inset -3px -3px 6px rgba(0, 0, 0, 0.7),
+    0 0 25px var(--accent-emerald-glow),
+    0 10px 20px rgba(0, 0, 0, 0.4);
 }
 
 .active-tone-indicator {
