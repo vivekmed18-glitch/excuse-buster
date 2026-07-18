@@ -6,6 +6,199 @@ const state = {
   apiKey: localStorage.getItem('excuse_api_key') || ''
 };
 
+// --- Web Audio API Programmatic UI Synthesizer ---
+const SynthAudio = {
+  ctx: null,
+  enabled: localStorage.getItem('excuse_sound_enabled') !== 'false',
+
+  init() {
+    if (this.ctx) return;
+    try {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+      console.warn('Web Audio API not supported in this browser.', e);
+    }
+  },
+
+  playTick() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    
+    // Very short, quiet high-frequency tick for hover feedback
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1400, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.04);
+    
+    gain.gain.setValueAtTime(0.015, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.04);
+    
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.04);
+  },
+
+  playClick() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    
+    // Snappy mechanical click for button presses
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.06);
+    
+    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.06);
+    
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.06);
+  },
+
+  playBust(tone) {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    
+    const now = this.ctx.currentTime;
+    
+    if (tone === 'coach') {
+      // Warm, motivating major arpeggio chime (C5 -> E5 -> G5 -> C6)
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, idx) => {
+        const time = now + idx * 0.08;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, time);
+        
+        gain.gain.setValueAtTime(0.12, time);
+        gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.4);
+        
+        osc.start(time);
+        osc.stop(time + 0.4);
+      });
+    } else if (tone === 'brutal') {
+      // Harsh low dissonance buzz (low clash saw waves) followed by bass drop
+      const osc1 = this.ctx.createOscillator();
+      const osc2 = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(this.ctx.destination);
+      
+      osc1.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(80, now);
+      osc1.frequency.linearRampToValueAtTime(45, now + 0.5);
+      
+      osc2.type = 'sawtooth';
+      osc2.frequency.setValueAtTime(84, now); // clash/dissonance
+      osc2.frequency.linearRampToValueAtTime(47, now + 0.5);
+      
+      gain.gain.setValueAtTime(0.16, now);
+      gain.gain.linearRampToValueAtTime(0.0001, now + 0.5);
+      
+      osc1.start(now);
+      osc1.stop(now + 0.5);
+      osc2.start(now);
+      osc2.stop(now + 0.5);
+    } else {
+      // Funny tone: cartoonish pitch-bending slide
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.quadraticRampToValueAtTime(140, now + 0.2);
+      osc.frequency.quadraticRampToValueAtTime(550, now + 0.4);
+      
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+      
+      osc.start(now);
+      osc.stop(now + 0.4);
+    }
+  },
+
+  playSwoosh() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    
+    // Ethereal white noise swoosh sweep for reveals
+    const now = this.ctx.currentTime;
+    const bufferSize = this.ctx.sampleRate * 0.35;
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    
+    const noiseNode = this.ctx.createBufferSource();
+    noiseNode.buffer = buffer;
+    
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.Q.setValueAtTime(2.5, now);
+    filter.frequency.setValueAtTime(900, now);
+    filter.frequency.exponentialRampToValueAtTime(200, now + 0.35);
+    
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.06, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+    
+    noiseNode.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+    
+    noiseNode.start(now);
+    noiseNode.stop(now + 0.35);
+  },
+
+  playToggle() {
+    this.init();
+    if (!this.ctx) return;
+    
+    // Clean audio check toggle chime (A5 -> E6)
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.setValueAtTime(1320, now + 0.08);
+    
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+    
+    osc.start(now);
+    osc.stop(now + 0.22);
+  }
+};
+
 // --- Mock Database for Offline/Initial Mode ---
 const mockDatabase = {
   gym: {
@@ -92,7 +285,8 @@ const elements = {
   apiKeyLabel: document.getElementById('api-key-label'),
   btnTogglePassword: document.getElementById('btn-toggle-password'),
   bustedCounter: document.getElementById('busted-counter'),
-  shareCanvas: document.getElementById('share-card-canvas')
+  shareCanvas: document.getElementById('share-card-canvas'),
+  soundToggle: document.getElementById('sound-effects-toggle')
 };
 
 // --- Helper Functions ---
@@ -399,6 +593,11 @@ function init() {
   if (state.apiKey) {
     elements.apiKeyInput.value = state.apiKey;
   }
+
+  // Restore Sound toggle state
+  if (elements.soundToggle) {
+    elements.soundToggle.checked = SynthAudio.enabled;
+  }
 }
 
 // Show/Hide API Key Panel
@@ -418,6 +617,9 @@ async function handleFormSubmit(e) {
   
   const excuseText = elements.input.value.trim();
   if (!excuseText) return;
+  
+  // Play click feedback
+  SynthAudio.playClick();
   
   // Show Loading / Disable State
   elements.btnBust.disabled = true;
@@ -452,6 +654,12 @@ async function handleFormSubmit(e) {
     elements.resCallout.textContent = result.callout;
     elements.resAction.textContent = result.action;
     
+    // Trigger transition sounds
+    SynthAudio.playSwoosh();
+    setTimeout(() => {
+      SynthAudio.playBust(state.selectedTone);
+    }, 150);
+    
     // Dynamic Accent Styling on Bezel
     elements.resultPanel.className = `double-bezel-outer result-section tone-${state.selectedTone}`;
     elements.resultPanel.classList.remove('hidden');
@@ -483,24 +691,37 @@ elements.input.addEventListener('input', () => {
 // Event Listeners for Tone Selection
 elements.toneBtns.forEach(btn => {
   btn.addEventListener('click', () => {
+    // Play button click sound
+    SynthAudio.playClick();
+    
     elements.toneBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     state.selectedTone = btn.dataset.tone;
+  });
+
+  // Play subtle hover tick
+  btn.addEventListener('mouseenter', () => {
+    SynthAudio.playTick();
   });
 });
 
 // Event Listeners for Settings Modal
 elements.btnSettings.addEventListener('click', () => {
+  SynthAudio.playClick();
   elements.settingsModal.classList.remove('hidden');
 });
+elements.btnSettings.addEventListener('mouseenter', () => SynthAudio.playTick());
 
 elements.btnCloseSettings.addEventListener('click', () => {
+  SynthAudio.playClick();
   elements.settingsModal.classList.add('hidden');
 });
+elements.btnCloseSettings.addEventListener('mouseenter', () => SynthAudio.playTick());
 
 // Close modal when clicking outside content container
 elements.settingsModal.addEventListener('click', (e) => {
   if (e.target === elements.settingsModal) {
+    SynthAudio.playClick();
     elements.settingsModal.classList.add('hidden');
   }
 });
@@ -508,6 +729,7 @@ elements.settingsModal.addEventListener('click', (e) => {
 // Settings radio triggers
 elements.settingsForm.addEventListener('change', (e) => {
   if (e.target.name === 'engine') {
+    SynthAudio.playClick();
     toggleAPIKeyInputVisibility(e.target.value);
   }
 });
@@ -516,20 +738,36 @@ elements.settingsForm.addEventListener('change', (e) => {
 elements.settingsForm.addEventListener('submit', (e) => {
   e.preventDefault();
   
+  SynthAudio.playClick();
   const selectedEngine = document.querySelector('input[name="engine"]:checked').value;
   const keyVal = elements.apiKeyInput.value.trim();
+  const soundVal = elements.soundToggle.checked;
   
   state.apiEngine = selectedEngine;
   state.apiKey = keyVal;
+  SynthAudio.enabled = soundVal;
   
   localStorage.setItem('excuse_api_engine', selectedEngine);
   localStorage.setItem('excuse_api_key', keyVal);
+  localStorage.setItem('excuse_sound_enabled', soundVal);
   
   elements.settingsModal.classList.add('hidden');
 });
 
+// Sound Toggle Listener
+if (elements.soundToggle) {
+  elements.soundToggle.addEventListener('change', (e) => {
+    SynthAudio.enabled = e.target.checked;
+    localStorage.setItem('excuse_sound_enabled', SynthAudio.enabled);
+    if (SynthAudio.enabled) {
+      SynthAudio.playToggle();
+    }
+  });
+}
+
 // Toggle password visibility
 elements.btnTogglePassword.addEventListener('click', () => {
+  SynthAudio.playClick();
   const type = elements.apiKeyInput.type === 'password' ? 'text' : 'password';
   elements.apiKeyInput.type = type;
   elements.btnTogglePassword.querySelector('i').className = type === 'password' ? 'ph-light ph-eye' : 'ph-light ph-eye-closed';
@@ -537,6 +775,7 @@ elements.btnTogglePassword.addEventListener('click', () => {
 
 // Copy results to Clipboard
 elements.btnCopy.addEventListener('click', async () => {
+  SynthAudio.playClick();
   const excuseText = elements.input.value.trim() || "I'll do it later";
   const textToCopy = `EXCUSE BUSTER (${state.selectedTone.toUpperCase()} MODE)\n\nOriginal Excuse: "${excuseText}"\n\n1. The Real Excuse: ${elements.resExcuse.textContent}\n2. The Callout: ${elements.resCallout.textContent}\n3. The Action (5 Mins): ${elements.resAction.textContent}`;
   
@@ -557,9 +796,11 @@ elements.btnCopy.addEventListener('click', async () => {
     alert('Failed to copy results.');
   }
 });
+elements.btnCopy.addEventListener('mouseenter', () => SynthAudio.playTick());
 
 // Trigger Download Share Card
 elements.btnDownload.addEventListener('click', () => {
+  SynthAudio.playClick();
   const excuseText = elements.input.value.trim() || "I'll do it later";
   const excuseType = elements.resExcuse.textContent;
   const callout = elements.resCallout.textContent;
@@ -567,6 +808,7 @@ elements.btnDownload.addEventListener('click', () => {
   
   downloadShareCard(excuseText, excuseType, callout, action, state.selectedTone);
 });
+elements.btnDownload.addEventListener('mouseenter', () => SynthAudio.playTick());
 
 // Form execution trigger
 elements.form.addEventListener('submit', handleFormSubmit);

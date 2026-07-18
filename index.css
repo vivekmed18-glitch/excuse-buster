@@ -938,3 +938,56 @@ textarea::placeholder {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* --- Custom Toggle Switch for Sound Settings --- */
+.toggle-option-wrapper {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.toggle-control-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.toggle-control-label input[type="checkbox"] {
+  appearance: none;
+  width: 44px;
+  height: 22px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.toggle-control-label input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background-color: var(--text-secondary);
+  border-radius: 50%;
+  transition: transform var(--transition-fast), background-color var(--transition-fast);
+}
+
+.toggle-control-label input[type="checkbox"]:checked {
+  background-color: var(--accent-amber-glow);
+  border-color: var(--accent-amber);
+}
+
+.toggle-control-label input[type="checkbox"]:checked::before {
+  transform: translateX(22px);
+  background-color: var(--accent-amber);
+}
+
