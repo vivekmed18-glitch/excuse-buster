@@ -926,7 +926,7 @@ function parseRobustJSON(text) {
 
 function classifyExcuseLocally(text) {
   const clean = text.toLowerCase();
-  if (clean.includes('gym') || clean.includes('workout') || clean.includes('exercise') || clean.includes('run') || clean.includes('fit') || clean.includes('sport') || clean.includes('cardio')) {
+  if (clean.includes('gym') || clean.includes('workout') || clean.includes('exercise') || clean.includes('run') || clean.includes('fit') || clean.includes('sport') || clean.includes('cardio') || clean.includes('walk') || clean.includes('jog') || clean.includes('hike') || clean.includes('step') || clean.includes('stroll')) {
     return 'gym';
   }
   if (clean.includes('code') || clean.includes('program') || clean.includes('project') || clean.includes('write') || clean.includes('learn') || clean.includes('developer') || clean.includes('repo') || clean.includes('bug') || clean.includes('test')) {

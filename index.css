@@ -1442,13 +1442,61 @@ textarea::placeholder {
     display: grid;
     grid-template-columns: 42% 58%;
     gap: 32px;
-    align-items: start;
+    align-items: stretch;
     margin-top: 24px;
   }
   
-  .split-left-panel {
-    position: sticky;
-    top: 24px;
+  .split-left-panel, .split-right-panel {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .split-left-panel .double-bezel-outer,
+  .split-right-panel .double-bezel-outer {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+  }
+  
+  .split-left-panel .double-bezel-inner,
+  .split-right-panel .double-bezel-inner {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #excuse-form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .primary-cta-btn {
+    margin-top: auto !important;
+  }
+
+  #result-card-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .result-placeholder-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: center;
+  }
+
+  .result-active-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .result-actions {
+    margin-top: auto !important;
   }
 }
 
