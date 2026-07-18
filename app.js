@@ -352,7 +352,7 @@ const elements = {
   form: document.getElementById('excuse-form'),
   input: document.getElementById('excuse-input'),
   charCurrent: document.getElementById('char-current'),
-  toneBtns: document.querySelectorAll('.tone-btn'),
+  toneBtns: document.querySelectorAll('.tone-circle-btn'),
   btnBust: document.getElementById('btn-bust'),
   resultPanel: document.getElementById('result-panel'),
   resExcuse: document.getElementById('res-excuse'),
@@ -393,7 +393,10 @@ const elements = {
   valCoding: document.getElementById('val-coding'),
   valClean: document.getElementById('val-clean'),
   valGeneric: document.getElementById('val-generic'),
-  btnRebust: document.getElementById('btn-rebust')
+  btnRebust: document.getElementById('btn-rebust'),
+  resultPlaceholder: document.getElementById('result-placeholder'),
+  resultActiveWrapper: document.getElementById('result-active-wrapper'),
+  lblActiveTone: document.getElementById('lbl-active-tone')
 };
 
 // --- Local Storage Analytics Module ---
@@ -1269,9 +1272,13 @@ async function handleFormSubmit(e) {
       SynthAudio.playBust(state.selectedTone);
     }, 120);
     
+    elements.resultPlaceholder.classList.add('hidden');
+    elements.resultActiveWrapper.classList.remove('hidden');
+    
     elements.resultPanel.className = `double-bezel-outer result-section tone-${state.selectedTone}`;
-    elements.resultPanel.classList.remove('hidden');
-    elements.resultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (window.innerWidth < 992) {
+      elements.resultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
     
     state.bustedCount += 1;
     localStorage.setItem('excuse_busted_count', state.bustedCount);
@@ -1293,12 +1300,21 @@ elements.input.addEventListener('input', () => {
   elements.charCurrent.textContent = current;
 });
 
+const toneLabels = {
+  coach: 'Warm Coach',
+  brutal: 'Brutal Truth',
+  funny: 'Funny Roast'
+};
+
 elements.toneBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     SynthAudio.playClick();
     elements.toneBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     state.selectedTone = btn.dataset.tone;
+    if (elements.lblActiveTone) {
+      elements.lblActiveTone.textContent = `Selected: ${toneLabels[state.selectedTone]}`;
+    }
   });
 
   btn.addEventListener('mouseenter', () => {

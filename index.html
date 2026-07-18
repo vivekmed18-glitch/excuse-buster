@@ -57,138 +57,153 @@
 
     <!-- Main Workspace Container -->
     <main class="app-main">
-      <!-- Welcome Eyebrow -->
-      <div class="welcome-eyebrow-container">
-        <span class="eyebrow-tag">AI-Powered Coach</span>
-        <h2 class="main-heading">Procrastination stops now.</h2>
-        <p class="main-subheading">Type the small excuse holding you back. Get Called Out. Take Action.</p>
-      </div>
+      <div class="app-split-container">
+        <!-- Left Panel: Input & Controls -->
+        <div class="split-left-panel">
+          <div class="welcome-eyebrow-container" style="text-align: left; margin-bottom: 24px;">
+            <span class="eyebrow-tag">AI-Powered Coach</span>
+            <h2 class="main-heading" style="font-size: 32px; text-align: left; margin-bottom: 8px;">Procrastination stops now.</h2>
+            <p class="main-subheading" style="text-align: left; font-size: 13px; max-width: 100%;">Type the excuse holding you back. Get called out. Take action.</p>
+          </div>
 
-      <!-- Excuse Input Area - Double Bezel Architecture -->
-      <section class="double-bezel-outer input-section">
-        <div class="double-bezel-inner">
-          <form id="excuse-form" novalidate>
-            <div class="input-group">
-              <label for="excuse-input" class="sr-only">What excuse are you making today?</label>
-              <textarea 
-                id="excuse-input" 
-                placeholder="e.g., I'll start the gym next week..." 
-                maxlength="280" 
-                required
-              ></textarea>
-              <div class="char-count"><span id="char-current">0</span>/280</div>
+          <!-- Excuse Input Area -->
+          <section class="double-bezel-outer input-section claymorphism-card">
+            <div class="double-bezel-inner">
+              <form id="excuse-form" novalidate>
+                <div class="input-group">
+                  <label for="excuse-input" class="sr-only">What excuse are you making today?</label>
+                  <textarea 
+                    id="excuse-input" 
+                    placeholder="e.g., I'll start the gym next week..." 
+                    maxlength="280" 
+                    required
+                  ></textarea>
+                  <div class="char-count"><span id="char-current">0</span>/280</div>
+                </div>
+
+                <!-- Personality Mode Selectors (Circular Style) -->
+                <div class="tone-selectors">
+                  <span class="section-label">Select Coach Tone:</span>
+                  <div class="tone-options-circle-row">
+                    <button type="button" class="tone-circle-btn active" data-tone="coach" id="tone-coach" title="Warm Coach" aria-label="Warm Coach">
+                      <i class="ph-fill ph-heart"></i>
+                    </button>
+                    <button type="button" class="tone-circle-btn" data-tone="brutal" id="tone-brutal" title="Brutal Truth" aria-label="Brutal Truth">
+                      <i class="ph-fill ph-skull"></i>
+                    </button>
+                    <button type="button" class="tone-circle-btn" data-tone="funny" id="tone-funny" title="Funny Roast" aria-label="Funny Roast">
+                      <i class="ph-fill ph-smiley"></i>
+                    </button>
+                  </div>
+                  <div class="active-tone-indicator" id="lbl-active-tone">Selected: Warm Coach</div>
+                </div>
+
+                <!-- Roadmap vs Action Switch -->
+                <div class="mode-switch-wrapper" style="margin-bottom: 20px;">
+                  <label class="toggle-control-label">
+                    <input type="checkbox" id="roadmap-mode-toggle">
+                    <span class="toggle-text">Split into 3-Step Habit Roadmap</span>
+                  </label>
+                </div>
+
+                <!-- Primary Action Button -->
+                <button type="submit" class="primary-cta-btn" id="btn-bust">
+                  <span class="btn-label">Bust Procrastination</span>
+                  <span class="btn-icon-wrapper">
+                    <i class="ph-light ph-arrow-right"></i>
+                  </span>
+                </button>
+              </form>
             </div>
+          </section>
+        </div>
 
-            <!-- Personality Mode Selectors -->
-            <div class="tone-selectors">
-              <span class="section-label">Select Coach Tone:</span>
-              <div class="tone-options-grid">
-                <button type="button" class="tone-btn active" data-tone="coach" id="tone-coach">
-                  <span class="tone-icon"><i class="ph-light ph-heart"></i></span>
-                  <span class="tone-text">Warm Coach</span>
-                </button>
-                <button type="button" class="tone-btn" data-tone="brutal" id="tone-brutal">
-                  <span class="tone-icon"><i class="ph-light ph-skull"></i></span>
-                  <span class="tone-text">Brutal Truth</span>
-                </button>
-                <button type="button" class="tone-btn" data-tone="funny" id="tone-funny">
-                  <span class="tone-icon"><i class="ph-light ph-smiley"></i></span>
-                  <span class="tone-text">Funny Roast</span>
-                </button>
+        <!-- Right Panel: Persistent Result Preview -->
+        <div class="split-right-panel">
+          <!-- Result Card -->
+          <section class="double-bezel-outer result-section preview-placeholder" id="result-panel">
+            <div class="double-bezel-inner" id="result-card-inner">
+              
+              <!-- Placeholder State (Shown initially) -->
+              <div class="result-placeholder-content" id="result-placeholder">
+                <div class="placeholder-icon"><i class="ph-light ph-sparkle"></i></div>
+                <h3>Waiting for Excuse</h3>
+                <p>Type your excuse on the left and hit Bust Procrastination to reveal the AI roasting card here.</p>
+              </div>
+
+              <!-- Active Content State (Initially Hidden) -->
+              <div class="result-active-content hidden" id="result-active-wrapper">
+                <!-- Decorative Status Header -->
+                <div class="card-status-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="status-indicator"></span>
+                    <span class="status-label" id="status-tag">Excuse Busted Successfully</span>
+                  </div>
+                  <button class="icon-btn soundwave-btn" id="btn-tts" aria-label="Listen to Roast" title="Listen to AI Voice Roast" style="width: 32px; height: 32px;">
+                    <i class="ph-light ph-speaker-high"></i>
+                  </button>
+                </div>
+
+                <!-- Busted Output Grid -->
+                <div class="result-grid">
+                  <!-- Part 1: The Named Excuse -->
+                  <div class="result-block" id="block-excuse">
+                    <div class="block-eyebrow"><i class="ph-light ph-tag"></i> The Real Excuse</div>
+                    <h3 class="block-value" id="res-excuse">Fear of Discomfort</h3>
+                  </div>
+
+                  <!-- Part 2: The Callout -->
+                  <div class="result-block" id="block-callout">
+                    <div class="block-eyebrow"><i class="ph-light ph-megaphone"></i> The Callout</div>
+                    <p class="block-value text-body" id="res-callout">Waiting for "next week" is a silent contract with failure. You aren't busy; you're just avoiding the initial friction. That friction never goes away by waiting.</p>
+                  </div>
+
+                  <!-- Part 3: The Action -->
+                  <div class="result-block block-highlight" id="block-action">
+                    <div class="block-eyebrow" id="action-eyebrow"><i class="ph-light ph-play-circle"></i> 5-Minute Action</div>
+                    <p class="block-value text-action" id="res-action">Put your sneakers on right now. Don't think about the gym. Just tie your shoes.</p>
+                    <ul class="roadmap-list hidden" id="res-roadmap"></ul>
+                  </div>
+                </div>
+
+                <!-- Card Customizer Aspect Ratio Selector -->
+                <div style="margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.03); padding-top: 16px;">
+                  <span class="section-label" style="margin-bottom: 8px; display: block;">Export Dimensions:</span>
+                  <div class="aspect-selector-group" id="aspect-ratio-selector">
+                    <button type="button" class="aspect-btn active" data-ratio="1:1">Square (1:1)</button>
+                    <button type="button" class="aspect-btn" data-ratio="9:16">Story (9:16)</button>
+                    <button type="button" class="aspect-btn" data-ratio="16:9">Wallpaper (16:9)</button>
+                  </div>
+                </div>
+
+                <!-- Sharing and Action Footer -->
+                <div class="result-actions" style="margin-top: 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                  <button class="secondary-btn" id="btn-copy">
+                    <i class="ph-light ph-copy"></i>
+                    <span>Copy Text</span>
+                  </button>
+                  <button class="secondary-btn" id="btn-download">
+                    <i class="ph-light ph-download-simple"></i>
+                    <span>Download Card</span>
+                  </button>
+                  <button class="secondary-btn" id="btn-calendar">
+                    <i class="ph-light ph-calendar"></i>
+                    <span>Add Calendar</span>
+                  </button>
+                  <button class="secondary-btn" id="btn-remind">
+                    <i class="ph-light ph-bell"></i>
+                    <span>Remind Me</span>
+                  </button>
+                  <button class="secondary-btn" id="btn-rebust" style="grid-column: 1 / -1; background: rgba(255, 255, 255, 0.03); border-color: var(--border-highlight);" title="Regenerate another response">
+                    <i class="ph-light ph-arrows-counter-clockwise"></i>
+                    <span>Regenerate Response</span>
+                  </button>
+                </div>
               </div>
             </div>
-
-            <!-- Roadmap vs Action Switch -->
-            <div class="mode-switch-wrapper" style="margin-bottom: 20px;">
-              <label class="toggle-control-label">
-                <input type="checkbox" id="roadmap-mode-toggle">
-                <span class="toggle-text">Split into a 3-Step Habit Roadmap</span>
-              </label>
-            </div>
-
-            <!-- Primary Action Button with Island trailing icon -->
-            <button type="submit" class="primary-cta-btn" id="btn-bust">
-              <span class="btn-label">Bust Procrastination</span>
-              <span class="btn-icon-wrapper">
-                <i class="ph-light ph-arrow-right"></i>
-              </span>
-            </button>
-          </form>
+          </section>
         </div>
-      </section>
-
-      <!-- Results Display Panel - Double Bezel Architecture (Initially Hidden) -->
-      <section class="double-bezel-outer result-section hidden" id="result-panel">
-        <div class="double-bezel-inner" id="result-card-inner">
-          
-          <!-- Decorative Status Header -->
-          <div class="card-status-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="status-indicator"></span>
-              <span class="status-label" id="status-tag">Excuse Busted Successfully</span>
-            </div>
-            <button class="icon-btn soundwave-btn" id="btn-tts" aria-label="Listen to Roast" title="Listen to AI Voice Roast" style="width: 32px; height: 32px;">
-              <i class="ph-light ph-speaker-high"></i>
-            </button>
-          </div>
-
-          <!-- Busted Output Grid -->
-          <div class="result-grid">
-            <!-- Part 1: The Named Excuse -->
-            <div class="result-block" id="block-excuse">
-              <div class="block-eyebrow"><i class="ph-light ph-tag"></i> The Real Excuse</div>
-              <h3 class="block-value" id="res-excuse">Fear of Discomfort</h3>
-            </div>
-
-            <!-- Part 2: The Callout -->
-            <div class="result-block" id="block-callout">
-              <div class="block-eyebrow"><i class="ph-light ph-megaphone"></i> The Callout</div>
-              <p class="block-value text-body" id="res-callout">Waiting for "next week" is a silent contract with failure. You aren't busy; you're just avoiding the initial friction. That friction never goes away by waiting.</p>
-            </div>
-
-            <!-- Part 3: The Action -->
-            <div class="result-block block-highlight" id="block-action">
-              <div class="block-eyebrow" id="action-eyebrow"><i class="ph-light ph-play-circle"></i> 5-Minute Action</div>
-              <p class="block-value text-action" id="res-action">Put your sneakers on right now. Don't think about the gym. Just tie your shoes.</p>
-              <ul class="roadmap-list hidden" id="res-roadmap"></ul>
-            </div>
-          </div>
-
-          <!-- Card Customizer Aspect Ratio Selector -->
-          <div style="margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.03); padding-top: 16px;">
-            <span class="section-label" style="margin-bottom: 8px; display: block;">Export Dimensions:</span>
-            <div class="aspect-selector-group" id="aspect-ratio-selector">
-              <button type="button" class="aspect-btn active" data-ratio="1:1">Square (1:1)</button>
-              <button type="button" class="aspect-btn" data-ratio="9:16">Story (9:16)</button>
-              <button type="button" class="aspect-btn" data-ratio="16:9">Wallpaper (16:9)</button>
-            </div>
-          </div>
-
-          <!-- Sharing and Action Footer -->
-          <div class="result-actions" style="margin-top: 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-            <button class="secondary-btn" id="btn-copy">
-              <i class="ph-light ph-copy"></i>
-              <span>Copy Text</span>
-            </button>
-            <button class="secondary-btn" id="btn-download">
-              <i class="ph-light ph-download-simple"></i>
-              <span>Download Card</span>
-            </button>
-            <button class="secondary-btn" id="btn-calendar">
-              <i class="ph-light ph-calendar"></i>
-              <span>Add Calendar</span>
-            </button>
-            <button class="secondary-btn" id="btn-remind">
-              <i class="ph-light ph-bell"></i>
-              <span>Remind Me</span>
-            </button>
-            <button class="secondary-btn" id="btn-rebust" style="grid-column: 1 / -1; background: rgba(255, 255, 255, 0.03); border-color: var(--border-highlight);" title="Regenerate another response">
-              <i class="ph-light ph-arrows-counter-clockwise"></i>
-              <span>Regenerate Response</span>
-            </button>
-          </div>
-        </div>
-      </section>
+      </div>
 
       <!-- Wall of Shame simulated Ticker -->
       <section class="wall-of-shame-container">

@@ -384,62 +384,87 @@ textarea::placeholder {
   font-weight: 600;
 }
 
-.tone-options-grid {
-  display: grid;
-  grid-template-cols: repeat(3, 1fr);
-  gap: 12px;
+.tone-options-circle-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  margin-bottom: 8px;
 }
 
-.tone-btn {
-  background: rgba(255, 255, 255, 0.02);
+.tone-circle-btn {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.01);
   border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: 14px;
   color: var(--text-secondary);
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 20px;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  transition: var(--transition-medium);
+  justify-content: center;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast), color var(--transition-fast);
+  box-shadow: 
+    inset 1px 1px 2px rgba(255, 255, 255, 0.05),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+    0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-.tone-icon i {
-  font-size: 18px;
-  transition: transform 0.4s var(--ease-spring);
-}
-
-.tone-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
+.tone-circle-btn:hover {
+  background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.15);
   color: var(--text-primary);
+  transform: translateY(-2px);
 }
 
-.tone-btn.active {
-  background: rgba(245, 158, 11, 0.06);
-  border-color: rgba(245, 158, 11, 0.3);
-  color: var(--accent-amber);
-  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.05);
+.tone-circle-btn:active {
+  transform: translateY(0);
+  box-shadow: 
+    inset -1px -1px 2px rgba(255, 255, 255, 0.05),
+    inset 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-/* Tone specific button overrides */
-.tone-btn[data-tone="brutal"].active {
+.tone-circle-btn.active {
+  background: rgba(var(--accent-active-rgb, 245, 158, 11), 0.06);
+  border-color: var(--accent-active);
+  color: var(--accent-active);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 
+    inset 1px 1px 3px rgba(255, 255, 255, 0.1),
+    0 0 15px var(--accent-active-glow),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Tone specific active indicator overrides */
+.tone-circle-btn[data-tone="brutal"].active {
   background: rgba(239, 68, 68, 0.06);
-  border-color: rgba(239, 68, 68, 0.3);
+  border-color: var(--accent-crimson);
   color: var(--accent-crimson);
+  box-shadow: 
+    inset 1px 1px 3px rgba(255, 255, 255, 0.1),
+    0 0 15px var(--accent-crimson-glow),
+    0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.tone-btn[data-tone="funny"].active {
+.tone-circle-btn[data-tone="funny"].active {
   background: rgba(16, 185, 129, 0.06);
-  border-color: rgba(16, 185, 129, 0.3);
+  border-color: var(--accent-emerald);
   color: var(--accent-emerald);
+  box-shadow: 
+    inset 1px 1px 3px rgba(255, 255, 255, 0.1),
+    0 0 15px var(--accent-emerald-glow),
+    0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.tone-btn.active .tone-icon i {
-  transform: scale(1.15);
+.active-tone-indicator {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color var(--transition-fast);
 }
 
 /* Core Call To Action (Button-in-Button) */
@@ -1366,6 +1391,106 @@ textarea::placeholder {
   opacity: 0;
   transform: translateY(-20px);
 }
+
+/* --- Split-Screen Desktop Layout --- */
+@media (min-width: 992px) {
+  .app-split-container {
+    display: grid;
+    grid-template-columns: 42% 58%;
+    gap: 32px;
+    align-items: start;
+    margin-top: 24px;
+  }
+  
+  .split-left-panel {
+    position: sticky;
+    top: 24px;
+  }
+}
+
+@media (max-width: 991px) {
+  /* Hide the preview card initially on mobile to prevent empty state layout clutter */
+  .preview-placeholder {
+    display: none !important;
+  }
+  
+  .app-split-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+}
+
+/* --- Claymorphism Surface Enhancements --- */
+.claymorphism-card {
+  background: rgba(13, 16, 27, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 
+    inset 2px 2px 6px rgba(255, 255, 255, 0.08), 
+    inset -3px -3px 8px rgba(0, 0, 0, 0.7),
+    0 12px 35px rgba(0, 0, 0, 0.45) !important;
+  backdrop-filter: blur(20px);
+}
+
+/* Update bezels to have a soft extruded spatial texture */
+.double-bezel-outer {
+  box-shadow: 
+    inset 1px 1px 3px rgba(255, 255, 255, 0.06),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.6),
+    0 15px 40px rgba(0, 0, 0, 0.45) !important;
+}
+
+.double-bezel-inner {
+  box-shadow: 
+    inset 1px 1px 2px rgba(255, 255, 255, 0.04),
+    inset -1px -1px 3px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* --- Placeholder Card Content --- */
+.result-placeholder-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 24px;
+  min-height: 480px;
+}
+
+.placeholder-icon {
+  font-size: 52px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  opacity: 0.35;
+  animation: floatIcon 4s infinite alternate ease-in-out;
+}
+
+.placeholder-icon i {
+  color: var(--accent-active);
+  text-shadow: 0 0 20px var(--accent-active-glow);
+}
+
+@keyframes floatIcon {
+  0% { transform: translateY(0) rotate(0); }
+  100% { transform: translateY(-12px) rotate(6deg); }
+}
+
+.result-placeholder-content h3 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.result-placeholder-content p {
+  font-size: 13px;
+  color: var(--text-muted);
+  max-width: 320px;
+  line-height: 1.6;
+}
+
 
 
 

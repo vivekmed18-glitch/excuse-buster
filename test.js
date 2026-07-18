@@ -29,9 +29,8 @@ const { chromium } = require('playwright');
   console.log('Submitting excuse form...');
   await page.click('#btn-bust');
   
-  console.log('Waiting for result panel to transition and reveal...');
-  // Wait for the .hidden class to be removed
-  await page.waitForSelector('#result-panel:not(.hidden)', { timeout: 15000 });
+  console.log('Waiting for result wrapper to transition and reveal...');
+  await page.waitForSelector('#result-active-wrapper:not(.hidden)', { timeout: 15000 });
   
   console.log('Reading resulting card details...');
   const excuse = (await page.textContent('#res-excuse')).trim();
