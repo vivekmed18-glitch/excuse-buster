@@ -3,7 +3,14 @@ const state = {
   bustedCount: parseInt(localStorage.getItem('excuse_busted_count')) || 0,
   selectedTone: 'coach',
   apiEngine: localStorage.getItem('excuse_api_engine') || 'mock',
-  apiKey: localStorage.getItem('excuse_api_key') || ''
+  apiKey: localStorage.getItem('excuse_api_key') || '',
+  activeTheme: localStorage.getItem('excuse_buster_theme') || 'amber',
+  roadmapMode: false,
+  selectedAspect: '1:1',
+  currentUtterance: null,
+  isSpeaking: false,
+  lastExcuseText: '',
+  lastBustedResponse: null // { excuse, callout, action } where action is string or array
 };
 
 // --- Web Audio API Programmatic UI Synthesizer ---
@@ -48,7 +55,6 @@ const SynthAudio = {
     await this.init();
     if (!this.ctx || this.ctx.state === 'suspended') return;
     
-    // Very short, quiet high-frequency tick for hover feedback
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     
@@ -76,7 +82,6 @@ const SynthAudio = {
     await this.init();
     if (!this.ctx || this.ctx.state === 'suspended') return;
     
-    // Snappy mechanical click for button presses
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     
@@ -99,6 +104,34 @@ const SynthAudio = {
     osc.stop(this.ctx.currentTime + 0.06);
   },
 
+  async playThud() {
+    if (!this.enabled) return;
+    await this.init();
+    if (!this.ctx || this.ctx.state === 'suspended') return;
+    
+    // Deep heavy stamp slam sound
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(110, this.ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(20, this.ctx.currentTime + 0.25);
+    
+    gain.gain.setValueAtTime(0.28, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.0001, this.ctx.currentTime + 0.25);
+    
+    osc.onended = () => {
+      osc.disconnect();
+      gain.disconnect();
+    };
+    
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.25);
+  },
+
   async playBust(tone) {
     if (!this.enabled) return;
     await this.init();
@@ -107,7 +140,6 @@ const SynthAudio = {
     const now = this.ctx.currentTime;
     
     if (tone === 'coach') {
-      // Warm, motivating major arpeggio chime (C5 -> E5 -> G5 -> C6)
       const notes = [523.25, 659.25, 783.99, 1046.50];
       notes.forEach((freq, idx) => {
         const time = now + idx * 0.08;
@@ -132,7 +164,6 @@ const SynthAudio = {
         osc.stop(time + 0.4);
       });
     } else if (tone === 'brutal') {
-      // Harsh low dissonance buzz (low clash saw waves) followed by bass drop
       const osc1 = this.ctx.createOscillator();
       const osc2 = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
@@ -146,7 +177,7 @@ const SynthAudio = {
       osc1.frequency.linearRampToValueAtTime(45, now + 0.5);
       
       osc2.type = 'sawtooth';
-      osc2.frequency.setValueAtTime(84, now); // clash/dissonance
+      osc2.frequency.setValueAtTime(84, now);
       osc2.frequency.linearRampToValueAtTime(47, now + 0.5);
       
       gain.gain.setValueAtTime(0.16, now);
@@ -164,7 +195,6 @@ const SynthAudio = {
       osc2.start(now);
       osc2.stop(now + 0.5);
     } else {
-      // Funny tone: cartoonish pitch-bending slide
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       
@@ -194,7 +224,6 @@ const SynthAudio = {
     await this.init();
     if (!this.ctx || this.ctx.state === 'suspended') return;
     
-    // Ethereal white noise swoosh sweep for reveals
     const now = this.ctx.currentTime;
     const buffer = this.getNoiseBuffer();
     if (!buffer) return;
@@ -230,7 +259,6 @@ const SynthAudio = {
     await this.init();
     if (!this.ctx || this.ctx.state === 'suspended') return;
     
-    // Clean audio check toggle chime (A5 -> E6)
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -330,6 +358,8 @@ const elements = {
   resExcuse: document.getElementById('res-excuse'),
   resCallout: document.getElementById('res-callout'),
   resAction: document.getElementById('res-action'),
+  resRoadmap: document.getElementById('res-roadmap'),
+  actionEyebrow: document.getElementById('action-eyebrow'),
   btnCopy: document.getElementById('btn-copy'),
   btnDownload: document.getElementById('btn-download'),
   btnSettings: document.getElementById('btn-settings'),
@@ -342,13 +372,231 @@ const elements = {
   btnTogglePassword: document.getElementById('btn-toggle-password'),
   bustedCounter: document.getElementById('busted-counter'),
   shareCanvas: document.getElementById('share-card-canvas'),
-  soundToggle: document.getElementById('sound-effects-toggle')
+  soundToggle: document.getElementById('sound-effects-toggle'),
+  
+  // New Feature elements
+  btnDashboard: document.getElementById('btn-dashboard'),
+  analyticsModal: document.getElementById('analytics-modal'),
+  btnCloseAnalytics: document.getElementById('btn-close-analytics'),
+  roadmapToggle: document.getElementById('roadmap-mode-toggle'),
+  btnTts: document.getElementById('btn-tts'),
+  aspectRatioSelector: document.getElementById('aspect-ratio-selector'),
+  btnCalendar: document.getElementById('btn-calendar'),
+  btnRemind: document.getElementById('btn-remind'),
+  statTotal: document.getElementById('stat-total'),
+  statStreak: document.getElementById('stat-streak'),
+  barGym: document.getElementById('bar-gym'),
+  barCoding: document.getElementById('bar-coding'),
+  barClean: document.getElementById('bar-clean'),
+  barGeneric: document.getElementById('bar-generic'),
+  valGym: document.getElementById('val-gym'),
+  valCoding: document.getElementById('val-coding'),
+  valClean: document.getElementById('val-clean'),
+  valGeneric: document.getElementById('val-generic')
+};
+
+// --- Local Storage Analytics Module ---
+const Analytics = {
+  getHistory() {
+    try {
+      return JSON.parse(localStorage.getItem('excuse_analytics_history') || '[]');
+    } catch (e) {
+      return [];
+    }
+  },
+  
+  saveHistory(history) {
+    localStorage.setItem('excuse_analytics_history', JSON.stringify(history));
+  },
+  
+  trackBust(excuseText) {
+    const history = this.getHistory();
+    const category = classifyExcuseLocally(excuseText);
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    // Log entry
+    history.push({
+      timestamp: Date.now(),
+      date: todayStr,
+      category: category,
+      excuse: excuseText
+    });
+    this.saveHistory(history);
+    
+    // Recalculate streak
+    let streak = 0;
+    const uniqueDates = Array.from(new Set(history.map(h => h.date))).sort();
+    if (uniqueDates.length > 0) {
+      const today = new Date(todayStr);
+      let checkDate = new Date(todayStr);
+      
+      if (uniqueDates.includes(todayStr)) {
+        streak = 1;
+        checkDate.setDate(checkDate.getDate() - 1);
+        let prevDateStr = checkDate.toISOString().split('T')[0];
+        
+        while (uniqueDates.includes(prevDateStr)) {
+          streak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+          prevDateStr = checkDate.toISOString().split('T')[0];
+        }
+      } else {
+        checkDate.setDate(checkDate.getDate() - 1);
+        let prevDateStr = checkDate.toISOString().split('T')[0];
+        if (uniqueDates.includes(prevDateStr)) {
+          streak = 1;
+          checkDate.setDate(checkDate.getDate() - 1);
+          prevDateStr = checkDate.toISOString().split('T')[0];
+          while (uniqueDates.includes(prevDateStr)) {
+            streak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+            prevDateStr = checkDate.toISOString().split('T')[0];
+          }
+        }
+      }
+    }
+    
+    localStorage.setItem('excuse_bust_streak', streak);
+    return {
+      total: history.length,
+      streak: streak,
+      categories: this.getCategoryBreakdown(history)
+    };
+  },
+  
+  getCategoryBreakdown(history) {
+    const counts = { gym: 0, coding: 0, clean: 0, generic: 0 };
+    history.forEach(h => {
+      if (counts[h.category] !== undefined) {
+        counts[h.category]++;
+      } else {
+        counts.generic++;
+      }
+    });
+    return counts;
+  },
+  
+  getStats() {
+    const history = this.getHistory();
+    const streak = parseInt(localStorage.getItem('excuse_bust_streak')) || 0;
+    return {
+      total: history.length,
+      streak: streak,
+      categories: this.getCategoryBreakdown(history)
+    };
+  }
+};
+
+// --- Web Speech API Text-to-Speech Engine ---
+const VoiceCoach = {
+  synth: window.speechSynthesis,
+  
+  speak(text, tone, onEndCallback) {
+    this.cancel();
+    if (!text || !this.synth) return;
+    
+    state.isSpeaking = true;
+    if (elements.btnTts) {
+      elements.btnTts.classList.add('audio-pulse-active');
+      elements.btnTts.querySelector('i').className = 'ph-light ph-speaker-none';
+    }
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    state.currentUtterance = utterance;
+    
+    if (tone === 'coach') {
+      utterance.rate = 0.95;
+      utterance.pitch = 1.05;
+    } else if (tone === 'brutal') {
+      utterance.rate = 0.78;
+      utterance.pitch = 0.85;
+    } else if (tone === 'funny') {
+      utterance.rate = 1.15;
+      utterance.pitch = 1.25;
+    }
+    
+    const voices = this.synth.getVoices();
+    let selectedVoice = voices.find(v => v.lang.startsWith('en-') && v.name.includes('Google'));
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => v.lang.startsWith('en-') && v.name.includes('Natural'));
+    }
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => v.lang.startsWith('en-'));
+    }
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+    
+    utterance.onend = () => {
+      this.clearState();
+      if (onEndCallback) onEndCallback();
+    };
+    
+    utterance.onerror = () => {
+      this.clearState();
+    };
+    
+    this.synth.speak(utterance);
+  },
+  
+  cancel() {
+    if (this.synth) {
+      this.synth.cancel();
+    }
+    this.clearState();
+  },
+  
+  clearState() {
+    state.isSpeaking = false;
+    state.currentUtterance = null;
+    if (elements.btnTts) {
+      elements.btnTts.classList.remove('audio-pulse-active');
+      elements.btnTts.querySelector('i').className = 'ph-light ph-speaker-high';
+    }
+  }
+};
+
+// --- Wall of Shame Simulated Feed Ticker ---
+const WallOfShame = {
+  ticker: null,
+  
+  init() {
+    this.ticker = document.getElementById('community-ticker');
+    if (!this.ticker) return;
+    
+    const mockExcuses = [
+      { excuse: "I'll start my coding project when I feel inspired.", roast: "Spoiler alert: Inspiration isn't coming. Discipline is.", tone: "brutal" },
+      { excuse: "I'm too tired to wash the dishes tonight.", roast: "Sure, let them grow their own civilization by morning.", tone: "funny" },
+      { excuse: "I need to do more research before I build this.", roast: "Research is procrastination dressed in a suit. Start coding.", tone: "coach" },
+      { excuse: "I'll clean my room tomorrow.", roast: "Ah, the mythical day where clean clothes fold themselves.", tone: "funny" },
+      { excuse: "I need to buy better running shoes first.", roast: "Your feet work fine. Put on whatever you have and run.", tone: "coach" },
+      { excuse: "I don't have enough time today.", roast: "You had enough time to read this. Go.", tone: "brutal" },
+      { excuse: "It's raining, so I can't go for my run.", roast: "You aren't made of sugar. Go splash.", tone: "coach" },
+      { excuse: "I'll study after checking social media for 5 minutes.", roast: "5 minutes of scrolling is a black hole. Close the tab.", tone: "brutal" }
+    ];
+    
+    const fullList = [...mockExcuses, ...mockExcuses];
+    
+    this.ticker.innerHTML = '';
+    fullList.forEach(item => {
+      const div = document.createElement('div');
+      div.className = `ticker-item tone-${item.tone}`;
+      
+      let badge = '🔥';
+      if (item.tone === 'brutal') badge = '💀';
+      if (item.tone === 'funny') badge = '🤡';
+      
+      div.innerHTML = `${badge} <span class="accent-text">"${item.excuse}"</span> ➜ ${item.roast}`;
+      this.ticker.appendChild(div);
+    });
+  }
 };
 
 // --- Helper Functions ---
 
 // Secure Odometer Digits Update
 function updateOdometer(count, immediate = false) {
+  if (!elements.bustedCounter) return;
   const digitsStr = String(count).padStart(3, '0');
   const digitElements = elements.bustedCounter.querySelectorAll('.digit');
   
@@ -358,7 +606,6 @@ function updateOdometer(count, immediate = false) {
       el.textContent = targetDigit;
       el.style.transform = 'none';
     } else {
-      // Small elastic bounce transition
       el.style.transform = 'translateY(-10px)';
       el.style.opacity = '0';
       setTimeout(() => {
@@ -374,124 +621,231 @@ function updateOdometer(count, immediate = false) {
 }
 
 // Generate Offscreen Styled Share Card via Canvas
-function downloadShareCard(excuseText, excuseType, calloutText, actionText, tone) {
+function downloadShareCard(excuseText, excuseType, calloutText, actionContent, tone, aspectRatio) {
   const canvas = elements.shareCanvas;
   const ctx = canvas.getContext('2d');
   
-  // Set dimensions for premium card (1200x900)
-  canvas.width = 1200;
-  canvas.height = 900;
+  let canvasW = 1200;
+  let canvasH = 1200; 
+  
+  let layout = {
+    padding: 70,
+    logoY: 90,
+    subtitleY: 120,
+    badgeX: 950,
+    badgeY: 65,
+    badgeW: 170,
+    badgeH: 40,
+    excuseLabelY: 200,
+    excuseTextY: 250,
+    dividerY: 380,
+    typeLabelY: 440,
+    typeTextY: 490,
+    calloutLabelY: 590,
+    calloutTextY: 640,
+    actionBoxPadding: 25,
+    actionBoxOffset: 40,
+    actionBoxHeight: 180,
+    watermarkY: 1140,
+    watermarkR: 970,
+    fontLogo: '800 32px Outfit',
+    fontSub: '500 14px Outfit',
+    fontLabel: 'bold 16px Outfit',
+    fontExcuse: 'italic 26px Plus Jakarta Sans',
+    fontType: '800 36px Outfit',
+    fontCallout: '400 20px Plus Jakarta Sans',
+    fontActionLabel: 'bold 14px Outfit',
+    fontActionText: '600 22px Outfit',
+    fontWatermark: '500 12px Outfit',
+    textWidth: 1060
+  };
+
+  if (aspectRatio === '9:16') {
+    canvasW = 1080;
+    canvasH = 1920; 
+    layout = {
+      padding: 60,
+      logoY: 110,
+      subtitleY: 145,
+      badgeX: 780,
+      badgeY: 85,
+      badgeW: 240,
+      badgeH: 50,
+      excuseLabelY: 280,
+      excuseTextY: 340,
+      dividerY: 560,
+      typeLabelY: 640,
+      typeTextY: 700,
+      calloutLabelY: 820,
+      calloutTextY: 880,
+      actionBoxPadding: 30,
+      actionBoxOffset: 60,
+      actionBoxHeight: 280,
+      watermarkY: 1850,
+      watermarkR: 750,
+      fontLogo: '800 42px Outfit',
+      fontSub: '500 18px Outfit',
+      fontLabel: 'bold 22px Outfit',
+      fontExcuse: 'italic 30px Plus Jakarta Sans',
+      fontType: '800 48px Outfit',
+      fontCallout: '400 24px Plus Jakarta Sans',
+      fontActionLabel: 'bold 18px Outfit',
+      fontActionText: '600 26px Outfit',
+      fontWatermark: '500 16px Outfit',
+      textWidth: 960
+    };
+  } else if (aspectRatio === '16:9') {
+    canvasW = 1920;
+    canvasH = 1080; 
+    layout = {
+      padding: 100,
+      logoY: 120,
+      subtitleY: 155,
+      badgeX: 1620,
+      badgeY: 95,
+      badgeW: 200,
+      badgeH: 45,
+      excuseLabelY: 250,
+      excuseTextY: 300,
+      dividerY: 450,
+      typeLabelY: 520,
+      typeTextY: 580,
+      calloutLabelY: 680,
+      calloutTextY: 730,
+      actionBoxPadding: 35,
+      actionBoxOffset: 50,
+      actionBoxHeight: 180,
+      watermarkY: 1020,
+      watermarkR: 1650,
+      fontLogo: '800 36px Outfit',
+      fontSub: '500 16px Outfit',
+      fontLabel: 'bold 18px Outfit',
+      fontExcuse: 'italic 28px Plus Jakarta Sans',
+      fontType: '800 40px Outfit',
+      fontCallout: '400 22px Plus Jakarta Sans',
+      fontActionLabel: 'bold 16px Outfit',
+      fontActionText: '600 24px Outfit',
+      fontWatermark: '500 14px Outfit',
+      textWidth: 1720
+    };
+  }
+  
+  canvas.width = canvasW;
+  canvas.height = canvasH;
   
   // 1. Draw Background Gradient
-  const grad = ctx.createRadialGradient(600, 450, 50, 600, 450, 700);
+  const grad = ctx.createRadialGradient(canvasW/2, canvasH/2, 50, canvasW/2, canvasH/2, Math.max(canvasW, canvasH)*0.6);
   grad.addColorStop(0, '#0f1322');
   grad.addColorStop(1, '#050508');
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, canvasW, canvasH);
   
   // 2. Draw Decorative Glow Orbs
-  let toneColor = '#f59e0b'; // Amber
+  let toneColor = '#f59e0b'; 
   if (tone === 'brutal') toneColor = '#ef4444';
   if (tone === 'funny') toneColor = '#10b981';
   
   ctx.save();
   ctx.globalAlpha = 0.12;
-  const glowGrad = ctx.createRadialGradient(900, 200, 10, 900, 200, 300);
+  const glowGrad = ctx.createRadialGradient(canvasW - 200, 200, 10, canvasW - 200, 200, 350);
   glowGrad.addColorStop(0, toneColor);
   glowGrad.addColorStop(1, 'transparent');
   ctx.fillStyle = glowGrad;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, canvasW, canvasH);
   ctx.restore();
-
+  
   // 3. Draw Outer Bezel / Border Frame
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
   ctx.lineWidth = 2;
-  // Inner margin border
-  ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
-
+  ctx.strokeRect(40, 40, canvasW - 80, canvasH - 80);
+  
   // 4. Logo / Header
   ctx.fillStyle = '#f8fafc';
-  ctx.font = '800 32px Outfit';
-  ctx.fillText('EXCUSE BUSTER', 70, 90);
+  ctx.font = layout.fontLogo;
+  ctx.fillText('EXCUSE BUSTER', layout.padding, layout.logoY);
   
   ctx.fillStyle = '#64748b';
-  ctx.font = '500 14px Outfit';
-  ctx.fillText('AI MOTIVATIONAL ARCHITECT', 70, 120);
-
+  ctx.font = layout.fontSub;
+  ctx.fillText('AI MOTIVATIONAL ARCHITECT', layout.padding, layout.subtitleY);
+  
   // Tone Badge Tag
-  ctx.strokeStyle = toneColor + '66'; // Opacity
+  ctx.strokeStyle = toneColor + '66';
   ctx.fillStyle = toneColor + '1a';
   ctx.lineWidth = 1;
-  // Draw Rounded pill
-  drawRoundedRect(ctx, 950, 65, 170, 40, 20, true, true);
+  drawRoundedRect(ctx, layout.badgeX, layout.badgeY, layout.badgeW, layout.badgeH, layout.badgeH/2, true, true);
   ctx.fillStyle = toneColor;
   ctx.font = 'bold 12px Outfit';
   ctx.textAlign = 'center';
-  ctx.fillText(tone.toUpperCase() + ' MODE', 1035, 90);
-  ctx.textAlign = 'left'; // Reset
-
+  ctx.fillText(tone.toUpperCase() + ' MODE', layout.badgeX + layout.badgeW/2, layout.badgeY + layout.badgeH/2 + 5);
+  ctx.textAlign = 'left';
+  
   // 5. Draw the Excuse Text
   ctx.fillStyle = '#94a3b8';
-  ctx.font = 'bold 16px Outfit';
-  ctx.fillText('THE SUBMITTED EXCUSE:', 70, 200);
-
+  ctx.font = layout.fontLabel;
+  ctx.fillText('THE SUBMITTED EXCUSE:', layout.padding, layout.excuseLabelY);
+  
   ctx.fillStyle = '#f8fafc';
-  ctx.font = 'italic 26px Plus Jakarta Sans';
-  wrapText(ctx, `"${excuseText}"`, 70, 240, 1060, 40);
-
+  ctx.font = layout.fontExcuse;
+  wrapText(ctx, `"${excuseText}"`, layout.padding, layout.excuseTextY, layout.textWidth, 40);
+  
   // Horizontal divider
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
   ctx.beginPath();
-  ctx.moveTo(70, 340);
-  ctx.lineTo(1130, 340);
+  ctx.moveTo(layout.padding, layout.dividerY);
+  ctx.lineTo(canvasW - layout.padding, layout.dividerY);
   ctx.stroke();
-
+  
   // 6. Draw Busted Classification
   ctx.fillStyle = toneColor;
-  ctx.font = 'bold 16px Outfit';
-  ctx.fillText('IDENTIFIED CORE EXCUSE:', 70, 390);
-
+  ctx.font = layout.fontLabel;
+  ctx.fillText('IDENTIFIED CORE EXCUSE:', layout.padding, layout.typeLabelY);
+  
   ctx.fillStyle = '#f8fafc';
-  ctx.font = '800 36px Outfit';
-  ctx.fillText(excuseType, 70, 440);
-
+  ctx.font = layout.fontType;
+  ctx.fillText(excuseType, layout.padding, layout.typeTextY);
+  
   // 7. Draw the Callout Text
   ctx.fillStyle = '#94a3b8';
-  ctx.font = 'bold 16px Outfit';
-  ctx.fillText('THE ROAST / CALLOUT:', 70, 520);
-
+  ctx.font = layout.fontLabel;
+  ctx.fillText('THE ROAST / CALLOUT:', layout.padding, layout.calloutLabelY);
+  
   ctx.fillStyle = '#cbd5e1';
-  ctx.font = '400 20px Plus Jakarta Sans';
-  const nextY = wrapText(ctx, calloutText, 70, 560, 1060, 32);
-
-  // 8. Draw Action Box (Highlighted Outer/Inner bezel style)
-  const boxY = Math.max(nextY + 30, 660);
+  ctx.font = layout.fontCallout;
+  const nextY = wrapText(ctx, calloutText, layout.padding, layout.calloutTextY, layout.textWidth, 34);
+  
+  // 8. Draw Action Box
+  const boxY = Math.max(nextY + layout.actionBoxOffset, canvasH - layout.actionBoxHeight - 120);
   ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
   ctx.strokeStyle = toneColor + '2e';
-  drawRoundedRect(ctx, 70, boxY, 1060, 140, 16, true, true);
+  drawRoundedRect(ctx, layout.padding, boxY, layout.textWidth, layout.actionBoxHeight, 16, true, true);
   
   ctx.fillStyle = toneColor;
-  ctx.font = 'bold 14px Outfit';
-  ctx.fillText('5-MINUTE ACTION TO TAKE NOW:', 95, boxY + 35);
+  ctx.font = layout.fontActionLabel;
+  ctx.fillText(Array.isArray(actionContent) ? 'MICRO-HABIT ROADMAP CHECKLIST:' : '5-MINUTE ACTION TO TAKE NOW:', layout.padding + 25, boxY + 35);
   
   ctx.fillStyle = '#f8fafc';
-  ctx.font = '600 22px Outfit';
-  wrapText(ctx, actionText, 95, boxY + 75, 1010, 32);
-
+  ctx.font = layout.fontActionText;
+  
+  if (Array.isArray(actionContent)) {
+    actionContent.forEach((step, idx) => {
+      ctx.fillText(`${idx + 1}. ${step}`, layout.padding + 25, boxY + 75 + idx * 35);
+    });
+  } else {
+    wrapText(ctx, actionContent, layout.padding + 25, boxY + 75, layout.textWidth - 50, 32);
+  }
+  
   // 9. Watermark Footer
   ctx.fillStyle = '#475569';
-  ctx.font = '500 12px Outfit';
-  ctx.fillText('excusebuster.ai', 70, 850);
-  ctx.fillText('BUSTER ID: ' + Math.random().toString(36).substring(2, 9).toUpperCase(), 970, 850);
-
-  // Convert to image and download
+  ctx.font = layout.fontWatermark;
+  ctx.fillText('excusebuster.ai', layout.padding, layout.watermarkY);
+  ctx.fillText('BUSTER ID: ' + Math.random().toString(36).substring(2, 9).toUpperCase(), layout.watermarkR, layout.watermarkY);
+  
   const link = document.createElement('a');
   link.download = `excuse-busted-${tone}-${Date.now()}.png`;
   link.href = canvas.toDataURL('image/png');
   link.click();
 }
 
-// Canvas Rounded Rect Helper
 function drawRoundedRect(ctx, x, y, width, height, radius, fill, stroke) {
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
@@ -508,7 +862,6 @@ function drawRoundedRect(ctx, x, y, width, height, radius, fill, stroke) {
   if (stroke) ctx.stroke();
 }
 
-// Canvas Text Wrapping Helper
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   const words = text.split(' ');
   let line = '';
@@ -530,50 +883,76 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   return currentY;
 }
 
-// Determine Local Mock Category from Text Keywords
 function classifyExcuseLocally(text) {
   const clean = text.toLowerCase();
-  if (clean.includes('gym') || clean.includes('workout') || clean.includes('exercise') || clean.includes('run') || clean.includes('fit')) {
+  if (clean.includes('gym') || clean.includes('workout') || clean.includes('exercise') || clean.includes('run') || clean.includes('fit') || clean.includes('sport') || clean.includes('cardio')) {
     return 'gym';
   }
-  if (clean.includes('code') || clean.includes('program') || clean.includes('project') || clean.includes('write') || clean.includes('learn') || clean.includes('developer') || clean.includes('repo')) {
+  if (clean.includes('code') || clean.includes('program') || clean.includes('project') || clean.includes('write') || clean.includes('learn') || clean.includes('developer') || clean.includes('repo') || clean.includes('bug') || clean.includes('test')) {
     return 'coding';
   }
-  if (clean.includes('clean') || clean.includes('room') || clean.includes('wash') || clean.includes('dishes') || clean.includes('chore') || clean.includes('laundry')) {
+  if (clean.includes('clean') || clean.includes('room') || clean.includes('wash') || clean.includes('dishes') || clean.includes('chore') || clean.includes('laundry') || clean.includes('vacuum') || clean.includes('tidy')) {
     return 'clean';
   }
   return 'generic';
 }
 
-// Mock AI Engine Call (Instant Response Generator)
 function generateMockResponse(text, tone) {
   const category = classifyExcuseLocally(text);
   const data = mockDatabase[category];
   const responseData = data[tone];
   
   let excuseName = data.name;
+  if (category === 'generic' && text.length > 5 && text.trim().slice(-1) !== '.') {
+    excuseName = 'Classic Procrastination Loop';
+  }
   
-  // Custom Dynamic Additions to make Mock feel somewhat AI-like
-  if (category === 'generic') {
-    if (text.length > 5 && text.trim().slice(-1) !== '.') {
-      excuseName = 'Classic Procrastination';
+  let actionResult = responseData.action;
+  if (state.roadmapMode) {
+    if (category === 'gym') {
+      actionResult = [
+        "Locate workout clothing and place them directly in front of you.",
+        "Put on your training shoes and tie them immediately.",
+        "Walk outside the door and set a timer to jog for exactly 5 minutes."
+      ];
+    } else if (category === 'coding') {
+      actionResult = [
+        "Open your code editor and close any web browser tabs that distract you.",
+        "Create a single file 'app_test.js' or 'index.html' locally.",
+        "Write a 3-line boilerplate function that logs a victory statement."
+      ];
+    } else if (category === 'clean') {
+      actionResult = [
+        "Locate three loose items lying out of place on the floor/desk.",
+        "Return all three items to their correct storage location.",
+        "Use a wet cloth or wipe to clean down your active desk surface."
+      ];
+    } else {
+      actionResult = [
+        "Isolate the single smallest sub-step of the task you are avoiding.",
+        "Set a timer and spend exactly 120 seconds executing that sub-step.",
+        "Jot down the next sub-step to keep momentum going for tomorrow."
+      ];
     }
   }
   
   return {
     excuse: excuseName,
     callout: responseData.callout,
-    action: responseData.action
+    action: actionResult
   };
 }
-
-// --- API Connectors ---
 
 // Call Gemini API (using client-side fetch)
 async function callGeminiAPI(excuseText, tone, apiKey) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
   
-  const systemPrompt = `You are Excuse Buster, a sharp motivational coach. The user gives an excuse. Respond in exactly 3 short parts, strictly formatted as JSON. The JSON keys MUST be exactly: "excuse" (name the real excuse in one line), "callout" (bluntly explain why it's holding them back), and "action" (one specific task they can do in 5 minutes). Match the selected tone: Coach (warm but firm), Brutal (harsh and direct), or Funny (playful and satirical). Do not include any markdown backticks or formatting outside the raw JSON.`;
+  let actionPromptDesc = 'one specific task they can do in 5 minutes';
+  if (state.roadmapMode) {
+    actionPromptDesc = 'an array of exactly 3 sequential, progressive 5-minute action steps to demolish the excuse';
+  }
+  
+  const systemPrompt = `You are Excuse Buster, a sharp motivational coach. The user gives an excuse. Respond in exactly 3 short parts, strictly formatted as JSON. The JSON keys MUST be exactly: "excuse" (name the real excuse in one line), "callout" (bluntly explain why it's holding them back), and "action" (${actionPromptDesc}). Match the selected tone: Coach (warm but firm), Brutal (harsh and direct), or Funny (playful and satirical). Do not include any markdown backticks or formatting outside the raw JSON.`;
   
   const response = await fetch(url, {
     method: 'POST',
@@ -604,7 +983,12 @@ async function callGeminiAPI(excuseText, tone, apiKey) {
 async function callOpenAIAPI(excuseText, tone, apiKey) {
   const url = 'https://api.openai.com/v1/chat/completions';
   
-  const systemPrompt = `You are Excuse Buster, a sharp motivational coach. The user gives an excuse. Respond in exactly 3 short parts, strictly formatted as JSON. The JSON keys MUST be exactly: "excuse" (name the real excuse in one line), "callout" (bluntly explain why it's holding them back), and "action" (one specific task they can do in 5 minutes). Match the selected tone: Coach (warm but firm), Brutal (harsh and direct), or Funny (playful and satirical).`;
+  let actionPromptDesc = 'one specific task they can do in 5 minutes';
+  if (state.roadmapMode) {
+    actionPromptDesc = 'an array of exactly 3 sequential, progressive 5-minute action steps to demolish the excuse';
+  }
+  
+  const systemPrompt = `You are Excuse Buster, a sharp motivational coach. The user gives an excuse. Respond in exactly 3 short parts, strictly formatted as JSON. The JSON keys MUST be exactly: "excuse" (name the real excuse in one line), "callout" (bluntly explain why it's holding them back), and "action" (${actionPromptDesc}). Match the selected tone: Coach (warm but firm), Brutal (harsh and direct), or Funny (playful and satirical).`;
   
   const response = await fetch(url, {
     method: 'POST',
@@ -633,13 +1017,96 @@ async function callOpenAIAPI(excuseText, tone, apiKey) {
   return JSON.parse(rawText.trim());
 }
 
-// --- Controller Actions & Event Listeners ---
+// Open / Close Analytics Dashboard
+function updateDashboardUI() {
+  const stats = Analytics.getStats();
+  elements.statTotal.textContent = stats.total;
+  elements.statStreak.textContent = `${stats.streak} day${stats.streak === 1 ? '' : 's'}`;
+  
+  const total = stats.total || 1;
+  const gymPercent = Math.min(100, Math.round((stats.categories.gym / total) * 100));
+  const codingPercent = Math.min(100, Math.round((stats.categories.coding / total) * 100));
+  const cleanPercent = Math.min(100, Math.round((stats.categories.clean / total) * 100));
+  const genericPercent = Math.min(100, Math.round((stats.categories.generic / total) * 100));
+  
+  elements.barGym.style.width = `${gymPercent}%`;
+  elements.valGym.textContent = stats.categories.gym;
+  
+  elements.barCoding.style.width = `${codingPercent}%`;
+  elements.valCoding.textContent = stats.categories.coding;
+  
+  elements.barClean.style.width = `${cleanPercent}%`;
+  elements.valClean.textContent = stats.categories.clean;
+  
+  elements.barGeneric.style.width = `${genericPercent}%`;
+  elements.valGeneric.textContent = stats.categories.generic;
+}
+
+function generateGoogleCalendarLink(actionText, excuseText) {
+  const now = new Date();
+  const startTime = now.toISOString().replace(/-|:|\.\d\d\d/g, "");
+  const end = new Date(now.getTime() + 5 * 60 * 1000); 
+  const endTime = end.toISOString().replace(/-|:|\.\d\d\d/g, "");
+  
+  const title = encodeURIComponent(`Excuse Busted: 5-Minute Action`);
+  const details = encodeURIComponent(`Action plan generated to demolish excuses.\n\nOriginal excuse: "${excuseText}"\n\nYour 5-minute action: ${actionText}`);
+  const dates = `${startTime}/${endTime}`;
+  
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&dates=${dates}`;
+}
+
+function scheduleNotificationReminder(actionText) {
+  if (!("Notification" in window)) {
+    alert("This browser does not support desktop notifications.");
+    return;
+  }
+  
+  if (Notification.permission === "granted") {
+    triggerTimerNotification(actionText);
+  } else if (Notification.permission !== "denied") {
+    Notification.requestPermission().then(permission => {
+      if (permission === "granted") {
+        triggerTimerNotification(actionText);
+      }
+    });
+  } else {
+    alert("Notification permission denied. Enable it in browser settings.");
+  }
+}
+
+function triggerTimerNotification(actionText) {
+  const btnSpan = elements.btnRemind.querySelector('span');
+  const btnIcon = elements.btnRemind.querySelector('i');
+  btnSpan.textContent = 'Scheduled!';
+  btnIcon.className = 'ph-light ph-check';
+  
+  const delaySec = 10;
+  setTimeout(() => {
+    new Notification("Excuse Buster Reminder!", {
+      body: `Time to do it: ${actionText}`,
+      icon: "favicon.ico"
+    });
+    
+    if (elements.btnRemind) {
+      btnSpan.textContent = 'Remind Me';
+      btnIcon.className = 'ph-light ph-bell';
+    }
+  }, delaySec * 1000);
+  
+  alert(`Reminder scheduled! Keep this tab open. A push notification will appear in ${delaySec} seconds.`);
+}
 
 // Initial setup on Page Load
 function init() {
   updateOdometer(state.bustedCount, true);
   
-  // Restore Settings States
+  document.body.className = `theme-${state.activeTheme}`;
+  const activeDot = document.querySelector(`.theme-dot[data-theme="${state.activeTheme}"]`);
+  if (activeDot) {
+    document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+    activeDot.classList.add('active');
+  }
+
   const engineRadio = document.querySelector(`input[name="engine"][value="${state.apiEngine}"]`);
   if (engineRadio) {
     engineRadio.checked = true;
@@ -650,13 +1117,13 @@ function init() {
     elements.apiKeyInput.value = state.apiKey;
   }
 
-  // Restore Sound toggle state
   if (elements.soundToggle) {
     elements.soundToggle.checked = SynthAudio.enabled;
   }
+  
+  WallOfShame.init();
 }
 
-// Show/Hide API Key Panel
 function toggleAPIKeyInputVisibility(engine) {
   if (engine === 'mock') {
     elements.apiKeyContainer.classList.add('hidden');
@@ -667,17 +1134,15 @@ function toggleAPIKeyInputVisibility(engine) {
   }
 }
 
-// Handle Form Submission (Excuse Busting)
 async function handleFormSubmit(e) {
   e.preventDefault();
   
   const excuseText = elements.input.value.trim();
   if (!excuseText) return;
   
-  // Play click feedback
+  elements.btnBust.classList.add('glitch-active');
   SynthAudio.playClick();
   
-  // Show Loading / Disable State
   elements.btnBust.disabled = true;
   elements.btnBust.querySelector('.btn-label').textContent = 'Busting excuse...';
   elements.btnBust.querySelector('.btn-icon-wrapper i').className = 'ph-light ph-spinner-gap spin-animation';
@@ -686,7 +1151,6 @@ async function handleFormSubmit(e) {
     let result = null;
     
     if (state.apiEngine === 'mock') {
-      // Simulate slight visual latency to feel premium
       await new Promise(r => setTimeout(r, 900));
       result = generateMockResponse(excuseText, state.selectedTone);
     } else {
@@ -705,63 +1169,98 @@ async function handleFormSubmit(e) {
       throw new Error("Invalid response format received from AI.");
     }
     
-    // Update Result UI
+    state.lastExcuseText = excuseText;
+    state.lastBustedResponse = result;
+    VoiceCoach.cancel();
+    
     elements.resExcuse.textContent = result.excuse;
     elements.resCallout.textContent = result.callout;
-    elements.resAction.textContent = result.action;
     
-    // Trigger transition sounds
+    const resActionContainer = elements.resAction;
+    const resRoadmapContainer = elements.resRoadmap;
+    
+    if (Array.isArray(result.action)) {
+      resActionContainer.classList.add('hidden');
+      resRoadmapContainer.classList.remove('hidden');
+      elements.actionEyebrow.innerHTML = '<i class="ph-light ph-git-fork"></i> 3-Step Habit Roadmap';
+      
+      resRoadmapContainer.innerHTML = '';
+      result.action.forEach((step, idx) => {
+        const li = document.createElement('li');
+        li.className = 'roadmap-step';
+        li.innerHTML = `
+          <input type="checkbox" class="step-checkbox" id="chk-step-${idx}">
+          <span class="step-text">${step}</span>
+        `;
+        
+        const chk = li.querySelector('.step-checkbox');
+        chk.addEventListener('change', (e) => {
+          SynthAudio.playTick();
+          if (e.target.checked) {
+            li.classList.add('completed');
+          } else {
+            li.classList.remove('completed');
+          }
+        });
+        
+        resRoadmapContainer.appendChild(li);
+      });
+    } else {
+      resRoadmapContainer.classList.add('hidden');
+      resActionContainer.classList.remove('hidden');
+      elements.actionEyebrow.innerHTML = '<i class="ph-light ph-play-circle"></i> 5-Minute Action';
+      resActionContainer.textContent = result.action;
+    }
+    
     SynthAudio.playSwoosh();
-    setTimeout(() => {
-      SynthAudio.playBust(state.selectedTone);
-    }, 150);
     
-    // Dynamic Accent Styling on Bezel
+    const tag = document.getElementById('status-tag');
+    tag.classList.remove('stamp-active');
+    void tag.offsetWidth; 
+    tag.classList.add('stamp-active');
+    
+    setTimeout(() => {
+      SynthAudio.playThud(); 
+      SynthAudio.playBust(state.selectedTone);
+    }, 120);
+    
     elements.resultPanel.className = `double-bezel-outer result-section tone-${state.selectedTone}`;
     elements.resultPanel.classList.remove('hidden');
-    
-    // Scroll result card into view smoothly
     elements.resultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     
-    // Increment Counter
     state.bustedCount += 1;
     localStorage.setItem('excuse_busted_count', state.bustedCount);
     updateOdometer(state.bustedCount);
+    Analytics.trackBust(excuseText);
     
   } catch (err) {
     alert(`Error: ${err.message}`);
   } finally {
-    // Reset Button State
+    elements.btnBust.classList.remove('glitch-active');
     elements.btnBust.disabled = false;
     elements.btnBust.querySelector('.btn-label').textContent = 'Bust Procrastination';
     elements.btnBust.querySelector('.btn-icon-wrapper i').className = 'ph-light ph-arrow-right';
   }
 }
 
-// Update character counter
 elements.input.addEventListener('input', () => {
   const current = elements.input.value.length;
   elements.charCurrent.textContent = current;
 });
 
-// Event Listeners for Tone Selection
 elements.toneBtns.forEach(btn => {
   btn.addEventListener('click', () => {
-    // Play button click sound
     SynthAudio.playClick();
-    
     elements.toneBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     state.selectedTone = btn.dataset.tone;
   });
 
-  // Play subtle hover tick
   btn.addEventListener('mouseenter', () => {
     SynthAudio.playTick();
   });
 });
 
-// Event Listeners for Settings Modal
 elements.btnSettings.addEventListener('click', () => {
   SynthAudio.playClick();
   elements.settingsModal.classList.remove('hidden');
@@ -774,7 +1273,6 @@ elements.btnCloseSettings.addEventListener('click', () => {
 });
 elements.btnCloseSettings.addEventListener('mouseenter', () => SynthAudio.playTick());
 
-// Close modal when clicking outside content container
 elements.settingsModal.addEventListener('click', (e) => {
   if (e.target === elements.settingsModal) {
     SynthAudio.playClick();
@@ -782,7 +1280,17 @@ elements.settingsModal.addEventListener('click', (e) => {
   }
 });
 
-// Settings radio triggers
+document.querySelectorAll('.theme-dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    SynthAudio.playTick();
+    const theme = dot.dataset.theme;
+    document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+    dot.classList.add('active');
+    document.body.className = `theme-${theme}`;
+    state.activeTheme = theme;
+  });
+});
+
 elements.settingsForm.addEventListener('change', (e) => {
   if (e.target.name === 'engine') {
     SynthAudio.playClick();
@@ -790,10 +1298,8 @@ elements.settingsForm.addEventListener('change', (e) => {
   }
 });
 
-// Save Settings Form
 elements.settingsForm.addEventListener('submit', (e) => {
   e.preventDefault();
-  
   SynthAudio.playClick();
   const selectedEngine = document.querySelector('input[name="engine"]:checked').value;
   const keyVal = elements.apiKeyInput.value.trim();
@@ -806,11 +1312,11 @@ elements.settingsForm.addEventListener('submit', (e) => {
   localStorage.setItem('excuse_api_engine', selectedEngine);
   localStorage.setItem('excuse_api_key', keyVal);
   localStorage.setItem('excuse_sound_enabled', soundVal);
+  localStorage.setItem('excuse_buster_theme', state.activeTheme);
   
   elements.settingsModal.classList.add('hidden');
 });
 
-// Sound Toggle Listener
 if (elements.soundToggle) {
   elements.soundToggle.addEventListener('change', (e) => {
     SynthAudio.enabled = e.target.checked;
@@ -821,7 +1327,6 @@ if (elements.soundToggle) {
   });
 }
 
-// Toggle password visibility
 elements.btnTogglePassword.addEventListener('click', () => {
   SynthAudio.playClick();
   const type = elements.apiKeyInput.type === 'password' ? 'text' : 'password';
@@ -829,16 +1334,21 @@ elements.btnTogglePassword.addEventListener('click', () => {
   elements.btnTogglePassword.querySelector('i').className = type === 'password' ? 'ph-light ph-eye' : 'ph-light ph-eye-closed';
 });
 
-// Copy results to Clipboard
 elements.btnCopy.addEventListener('click', async () => {
   SynthAudio.playClick();
-  const excuseText = elements.input.value.trim() || "I'll do it later";
-  const textToCopy = `EXCUSE BUSTER (${state.selectedTone.toUpperCase()} MODE)\n\nOriginal Excuse: "${excuseText}"\n\n1. The Real Excuse: ${elements.resExcuse.textContent}\n2. The Callout: ${elements.resCallout.textContent}\n3. The Action (5 Mins): ${elements.resAction.textContent}`;
+  const excuseText = state.lastExcuseText || "I'll do it later";
+  
+  let actionText = '';
+  if (state.lastBustedResponse && Array.isArray(state.lastBustedResponse.action)) {
+    actionText = state.lastBustedResponse.action.map((step, i) => `${i+1}. ${step}`).join('\n');
+  } else {
+    actionText = elements.resAction.textContent;
+  }
+  
+  const textToCopy = `EXCUSE BUSTER (${state.selectedTone.toUpperCase()} MODE)\n\nOriginal Excuse: "${excuseText}"\n\n1. The Real Excuse: ${elements.resExcuse.textContent}\n2. The Callout: ${elements.resCallout.textContent}\n3. Action/Roadmap:\n${actionText}`;
   
   try {
     await navigator.clipboard.writeText(textToCopy);
-    
-    // Smooth Feedback transition
     const span = elements.btnCopy.querySelector('span');
     const origText = span.textContent;
     span.textContent = 'Copied!';
@@ -854,20 +1364,98 @@ elements.btnCopy.addEventListener('click', async () => {
 });
 elements.btnCopy.addEventListener('mouseenter', () => SynthAudio.playTick());
 
-// Trigger Download Share Card
+document.querySelectorAll('.aspect-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    SynthAudio.playTick();
+    document.querySelectorAll('.aspect-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.selectedAspect = btn.dataset.ratio;
+  });
+});
+
 elements.btnDownload.addEventListener('click', () => {
   SynthAudio.playClick();
-  const excuseText = elements.input.value.trim() || "I'll do it later";
+  const excuseText = state.lastExcuseText || "I'll do it later";
   const excuseType = elements.resExcuse.textContent;
   const callout = elements.resCallout.textContent;
-  const action = elements.resAction.textContent;
   
-  downloadShareCard(excuseText, excuseType, callout, action, state.selectedTone);
+  let action = '';
+  if (state.lastBustedResponse && Array.isArray(state.lastBustedResponse.action)) {
+    action = state.lastBustedResponse.action;
+  } else {
+    action = elements.resAction.textContent;
+  }
+  
+  downloadShareCard(excuseText, excuseType, callout, action, state.selectedTone, state.selectedAspect);
 });
 elements.btnDownload.addEventListener('mouseenter', () => SynthAudio.playTick());
 
-// Form execution trigger
+if (elements.roadmapToggle) {
+  elements.roadmapToggle.addEventListener('change', (e) => {
+    SynthAudio.playTick();
+    state.roadmapMode = e.target.checked;
+  });
+}
+
+elements.btnTts.addEventListener('click', () => {
+  SynthAudio.playClick();
+  
+  if (state.isSpeaking) {
+    VoiceCoach.cancel();
+  } else {
+    const textToSpeak = `${elements.resExcuse.textContent}. ${elements.resCallout.textContent}.`;
+    VoiceCoach.speak(textToSpeak, state.selectedTone, () => {});
+  }
+});
+elements.btnTts.addEventListener('mouseenter', () => SynthAudio.playTick());
+
+elements.btnCalendar.addEventListener('click', () => {
+  SynthAudio.playClick();
+  
+  let primaryAction = '';
+  if (state.lastBustedResponse && Array.isArray(state.lastBustedResponse.action)) {
+    primaryAction = state.lastBustedResponse.action[0];
+  } else {
+    primaryAction = elements.resAction.textContent;
+  }
+  
+  const calendarLink = generateGoogleCalendarLink(primaryAction, state.lastExcuseText);
+  window.open(calendarLink, '_blank');
+});
+elements.btnCalendar.addEventListener('mouseenter', () => SynthAudio.playTick());
+
+elements.btnRemind.addEventListener('click', () => {
+  SynthAudio.playClick();
+  let primaryAction = '';
+  if (state.lastBustedResponse && Array.isArray(state.lastBustedResponse.action)) {
+    primaryAction = state.lastBustedResponse.action[0];
+  } else {
+    primaryAction = elements.resAction.textContent;
+  }
+  scheduleNotificationReminder(primaryAction);
+});
+elements.btnRemind.addEventListener('mouseenter', () => SynthAudio.playTick());
+
+elements.btnDashboard.addEventListener('click', () => {
+  SynthAudio.playClick();
+  updateDashboardUI();
+  elements.analyticsModal.classList.remove('hidden');
+});
+elements.btnDashboard.addEventListener('mouseenter', () => SynthAudio.playTick());
+
+elements.btnCloseAnalytics.addEventListener('click', () => {
+  SynthAudio.playClick();
+  elements.analyticsModal.classList.add('hidden');
+});
+elements.btnCloseAnalytics.addEventListener('mouseenter', () => SynthAudio.playTick());
+
+elements.analyticsModal.addEventListener('click', (e) => {
+  if (e.target === elements.analyticsModal) {
+    SynthAudio.playClick();
+    elements.analyticsModal.classList.add('hidden');
+  }
+});
+
 elements.form.addEventListener('submit', handleFormSubmit);
 
-// Initialize application state
 init();

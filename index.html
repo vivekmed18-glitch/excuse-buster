@@ -43,8 +43,13 @@
           </div>
         </div>
         
+        <!-- Analytics Dashboard Trigger -->
+        <button class="icon-btn" id="btn-dashboard" aria-label="Analytics Dashboard" title="View Analytics Dashboard">
+          <i class="ph-light ph-chart-bar"></i>
+        </button>
+
         <!-- API Settings Trigger -->
-        <button class="icon-btn" id="btn-settings" aria-label="Settings">
+        <button class="icon-btn" id="btn-settings" aria-label="Settings" title="API Configuration">
           <i class="ph-light ph-gear"></i>
         </button>
       </div>
@@ -93,6 +98,14 @@
               </div>
             </div>
 
+            <!-- Roadmap vs Action Switch -->
+            <div class="mode-switch-wrapper" style="margin-bottom: 20px;">
+              <label class="toggle-control-label">
+                <input type="checkbox" id="roadmap-mode-toggle">
+                <span class="toggle-text">Split into a 3-Step Habit Roadmap</span>
+              </label>
+            </div>
+
             <!-- Primary Action Button with Island trailing icon -->
             <button type="submit" class="primary-cta-btn" id="btn-bust">
               <span class="btn-label">Bust Procrastination</span>
@@ -109,9 +122,14 @@
         <div class="double-bezel-inner" id="result-card-inner">
           
           <!-- Decorative Status Header -->
-          <div class="card-status-header">
-            <span class="status-indicator"></span>
-            <span class="status-label" id="status-tag">Excuse Busted Successfully</span>
+          <div class="card-status-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="status-indicator"></span>
+              <span class="status-label" id="status-tag">Excuse Busted Successfully</span>
+            </div>
+            <button class="icon-btn soundwave-btn" id="btn-tts" aria-label="Listen to Roast" title="Listen to AI Voice Roast" style="width: 32px; height: 32px;">
+              <i class="ph-light ph-speaker-high"></i>
+            </button>
           </div>
 
           <!-- Busted Output Grid -->
@@ -130,22 +148,49 @@
 
             <!-- Part 3: The Action -->
             <div class="result-block block-highlight" id="block-action">
-              <div class="block-eyebrow"><i class="ph-light ph-play-circle"></i> 5-Minute Action</div>
+              <div class="block-eyebrow" id="action-eyebrow"><i class="ph-light ph-play-circle"></i> 5-Minute Action</div>
               <p class="block-value text-action" id="res-action">Put your sneakers on right now. Don't think about the gym. Just tie your shoes.</p>
+              <ul class="roadmap-list hidden" id="res-roadmap"></ul>
+            </div>
+          </div>
+
+          <!-- Card Customizer Aspect Ratio Selector -->
+          <div style="margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.03); padding-top: 16px;">
+            <span class="section-label" style="margin-bottom: 8px; display: block;">Export Dimensions:</span>
+            <div class="aspect-selector-group" id="aspect-ratio-selector">
+              <button type="button" class="aspect-btn active" data-ratio="1:1">Square (1:1)</button>
+              <button type="button" class="aspect-btn" data-ratio="9:16">Story (9:16)</button>
+              <button type="button" class="aspect-btn" data-ratio="16:9">Wallpaper (16:9)</button>
             </div>
           </div>
 
           <!-- Sharing and Action Footer -->
-          <div class="result-actions">
+          <div class="result-actions" style="margin-top: 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
             <button class="secondary-btn" id="btn-copy">
               <i class="ph-light ph-copy"></i>
-              <span>Copy Response</span>
+              <span>Copy Text</span>
             </button>
             <button class="secondary-btn" id="btn-download">
               <i class="ph-light ph-download-simple"></i>
               <span>Download Card</span>
             </button>
+            <button class="secondary-btn" id="btn-calendar">
+              <i class="ph-light ph-calendar"></i>
+              <span>Add Calendar</span>
+            </button>
+            <button class="secondary-btn" id="btn-remind">
+              <i class="ph-light ph-bell"></i>
+              <span>Remind Me</span>
+            </button>
           </div>
+        </div>
+      </section>
+
+      <!-- Wall of Shame simulated Ticker -->
+      <section class="wall-of-shame-container">
+        <h3 class="wall-title"><i class="ph-light ph-users"></i> Wall of Shame (Community Activity)</h3>
+        <div class="wall-ticker" id="community-ticker">
+          <!-- Populated dynamically via JS to ensure seamless infinite looping -->
         </div>
       </section>
     </main>
@@ -220,6 +265,17 @@
               <span class="field-help" id="api-key-help">Stored locally in your browser's LocalStorage. Never leaves your client.</span>
             </div>
 
+            <!-- Theme Selection Group -->
+            <div class="form-group" style="margin-top: 20px;">
+              <label class="form-label">Neon Interface Theme</label>
+              <div class="theme-grid">
+                <div class="theme-dot active" data-theme="amber" title="Amber Spark"></div>
+                <div class="theme-dot" data-theme="cyberpunk" title="Cyberpunk Pink"></div>
+                <div class="theme-dot" data-theme="matrix" title="Matrix Green"></div>
+                <div class="theme-dot" data-theme="volcanic" title="Volcanic Orange"></div>
+              </div>
+            </div>
+
             <!-- Sound Effects Toggle Group -->
             <div class="form-group" style="margin-top: 20px; margin-bottom: 24px;">
               <label class="form-label">Feedback Sound Effects</label>
@@ -239,6 +295,71 @@
               </span>
             </button>
           </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics Dashboard Modal Dialog -->
+  <div class="modal-overlay hidden" id="analytics-modal">
+    <div class="modal-container double-bezel-outer">
+      <div class="modal-content double-bezel-inner">
+        <div class="modal-header">
+          <h2>Analytics Dashboard</h2>
+          <button class="close-btn" id="btn-close-analytics" aria-label="Close analytics">
+            <i class="ph-light ph-x"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="settings-intro">Real-time local tracking metrics of excuses demolished.</p>
+          
+          <div class="analytics-grid">
+            <div class="stat-card">
+              <div class="stat-label">Total Demolished</div>
+              <div class="stat-num" id="stat-total">0</div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-label">Bust Streak</div>
+              <div class="stat-num" id="stat-streak">0 days</div>
+            </div>
+            
+            <div class="chart-container">
+              <div class="chart-title">Trigger Breakdown</div>
+              
+              <div class="chart-row">
+                <span class="chart-label">Discomfort</span>
+                <div class="chart-bar-bg">
+                  <div class="chart-bar-fill" id="bar-gym" style="width: 0%;"></div>
+                </div>
+                <span class="chart-val" id="val-gym">0</span>
+              </div>
+              
+              <div class="chart-row">
+                <span class="chart-label">Fear / Imposter</span>
+                <div class="chart-bar-bg">
+                  <div class="chart-bar-fill" id="bar-coding" style="width: 0%;"></div>
+                </div>
+                <span class="chart-val" id="val-coding">0</span>
+              </div>
+              
+              <div class="chart-row">
+                <span class="chart-label">Bored Chores</span>
+                <div class="chart-bar-bg">
+                  <div class="chart-bar-fill" id="bar-clean" style="width: 0%;"></div>
+                </div>
+                <span class="chart-val" id="val-clean">0</span>
+              </div>
+              
+              <div class="chart-row">
+                <span class="chart-label">General Inertia</span>
+                <div class="chart-bar-bg">
+                  <div class="chart-bar-fill" id="bar-generic" style="width: 0%;"></div>
+                </div>
+                <span class="chart-val" id="val-generic">0</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
