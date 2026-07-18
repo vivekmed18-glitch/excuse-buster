@@ -9,8 +9,9 @@ const { chromium } = require('playwright');
   
   const page = await browser.newPage();
   
-  console.log('Navigating to live site...');
-  await page.goto('https://vivekmed18-glitch.github.io/excuse-buster/');
+  const targetUrl = process.env.TEST_URL || 'https://vivekmed18-glitch.github.io/excuse-buster/';
+  console.log(`Navigating to target URL: ${targetUrl}...`);
+  await page.goto(targetUrl);
   
   console.log('Verifying page title...');
   const title = await page.title();

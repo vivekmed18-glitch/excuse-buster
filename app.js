@@ -10,9 +10,19 @@ const state = {
 const SynthAudio = {
   ctx: null,
   enabled: localStorage.getItem('excuse_sound_enabled') !== 'false',
+  noiseBuffer: null,
 
-  init() {
-    if (this.ctx) return;
+  async init() {
+    if (this.ctx) {
+      if (this.ctx.state === 'suspended') {
+        try {
+          await this.ctx.resume();
+        } catch (e) {
+          console.warn('Failed to resume AudioContext:', e);
+        }
+      }
+      return;
+    }
     try {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
     } catch (e) {
@@ -20,10 +30,23 @@ const SynthAudio = {
     }
   },
 
-  playTick() {
+  getNoiseBuffer() {
+    if (this.noiseBuffer) return this.noiseBuffer;
+    if (!this.ctx) return null;
+    const bufferSize = this.ctx.sampleRate * 0.35;
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    this.noiseBuffer = buffer;
+    return buffer;
+  },
+
+  async playTick() {
     if (!this.enabled) return;
-    this.init();
-    if (!this.ctx) return;
+    await this.init();
+    if (!this.ctx || this.ctx.state === 'suspended') return;
     
     // Very short, quiet high-frequency tick for hover feedback
     const osc = this.ctx.createOscillator();
@@ -39,14 +62,19 @@ const SynthAudio = {
     gain.gain.setValueAtTime(0.015, this.ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.04);
     
+    osc.onended = () => {
+      osc.disconnect();
+      gain.disconnect();
+    };
+    
     osc.start();
     osc.stop(this.ctx.currentTime + 0.04);
   },
 
-  playClick() {
+  async playClick() {
     if (!this.enabled) return;
-    this.init();
-    if (!this.ctx) return;
+    await this.init();
+    if (!this.ctx || this.ctx.state === 'suspended') return;
     
     // Snappy mechanical click for button presses
     const osc = this.ctx.createOscillator();
@@ -62,14 +90,19 @@ const SynthAudio = {
     gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.06);
     
+    osc.onended = () => {
+      osc.disconnect();
+      gain.disconnect();
+    };
+    
     osc.start();
     osc.stop(this.ctx.currentTime + 0.06);
   },
 
-  playBust(tone) {
+  async playBust(tone) {
     if (!this.enabled) return;
-    this.init();
-    if (!this.ctx) return;
+    await this.init();
+    if (!this.ctx || this.ctx.state === 'suspended') return;
     
     const now = this.ctx.currentTime;
     
@@ -89,6 +122,11 @@ const SynthAudio = {
         
         gain.gain.setValueAtTime(0.12, time);
         gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.4);
+        
+        osc.onended = () => {
+          osc.disconnect();
+          gain.disconnect();
+        };
         
         osc.start(time);
         osc.stop(time + 0.4);
@@ -114,6 +152,13 @@ const SynthAudio = {
       gain.gain.setValueAtTime(0.16, now);
       gain.gain.linearRampToValueAtTime(0.0001, now + 0.5);
       
+      const cleanUp = () => {
+        osc1.disconnect();
+        osc2.disconnect();
+        gain.disconnect();
+      };
+      osc1.onended = cleanUp;
+      
       osc1.start(now);
       osc1.stop(now + 0.5);
       osc2.start(now);
@@ -128,31 +173,31 @@ const SynthAudio = {
       
       osc.type = 'sine';
       osc.frequency.setValueAtTime(320, now);
-      osc.frequency.quadraticRampToValueAtTime(140, now + 0.2);
-      osc.frequency.quadraticRampToValueAtTime(550, now + 0.4);
+      osc.frequency.exponentialRampToValueAtTime(140, now + 0.2);
+      osc.frequency.exponentialRampToValueAtTime(550, now + 0.4);
       
       gain.gain.setValueAtTime(0.15, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+      
+      osc.onended = () => {
+        osc.disconnect();
+        gain.disconnect();
+      };
       
       osc.start(now);
       osc.stop(now + 0.4);
     }
   },
 
-  playSwoosh() {
+  async playSwoosh() {
     if (!this.enabled) return;
-    this.init();
-    if (!this.ctx) return;
+    await this.init();
+    if (!this.ctx || this.ctx.state === 'suspended') return;
     
     // Ethereal white noise swoosh sweep for reveals
     const now = this.ctx.currentTime;
-    const bufferSize = this.ctx.sampleRate * 0.35;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
+    const buffer = this.getNoiseBuffer();
+    if (!buffer) return;
     
     const noiseNode = this.ctx.createBufferSource();
     noiseNode.buffer = buffer;
@@ -171,13 +216,19 @@ const SynthAudio = {
     filter.connect(gain);
     gain.connect(this.ctx.destination);
     
+    noiseNode.onended = () => {
+      noiseNode.disconnect();
+      filter.disconnect();
+      gain.disconnect();
+    };
+    
     noiseNode.start(now);
     noiseNode.stop(now + 0.35);
   },
 
-  playToggle() {
-    this.init();
-    if (!this.ctx) return;
+  async playToggle() {
+    await this.init();
+    if (!this.ctx || this.ctx.state === 'suspended') return;
     
     // Clean audio check toggle chime (A5 -> E6)
     const now = this.ctx.currentTime;
@@ -193,6 +244,11 @@ const SynthAudio = {
     
     gain.gain.setValueAtTime(0.08, now);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+    
+    osc.onended = () => {
+      osc.disconnect();
+      gain.disconnect();
+    };
     
     osc.start(now);
     osc.stop(now + 0.22);
