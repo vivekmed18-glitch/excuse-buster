@@ -1,19 +1,20 @@
-# 🚀 Excuse Buster — Banish Procrastination Instantly
+# 🚀 Excuse Buster — Competition Submission Package
 
-[![Live App](https://img.shields.io/badge/Live%20App-Excuse%20Buster-amber?style=for-the-badge&logo=googlechrome&logoColor=white)](https://vivekmed18-glitch.github.io/excuse-buster/)
-[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/vivekmed18-glitch/excuse-buster)
+## 📌 Project Name
+**Excuse Buster**
 
-> **One-Line Pitch:** An AI coach that calls out your excuses, banishes procrastination, and gives you one tiny action to start now.
+## 💡 One-Line Pitch
+An AI coach that calls out your excuses, banishes procrastination, and gives you one tiny action to start now.
 
 ---
 
 ## 🎯 Problem
-People don’t fail because of big obstacles — they fail because of small excuses:
+People don’t fail because of big obstacles — they fail because of small excuses. 
 * *"I’ll do it later."*
 * *"I’m not ready."*
 * *"I don’t have time."*
 
-These micro-excuses stop momentum before action even begins.
+These micro-excuses kill momentum before action even begins.
 
 ---
 
@@ -23,7 +24,7 @@ These micro-excuses stop momentum before action even begins.
 ---
 
 ## 🛠️ How It Works
-1. **Input:** Type what you keep avoiding (e.g., *"can't go out for walk"*).
+1. **Input:** User types what they keep avoiding (e.g., *"can't go out for walk"*).
 2. **Identify:** AI names the underlying excuse (e.g., *Energy Illusion & Fatigue Shield*).
 3. **Callout:** AI calls it out matched to your chosen tone (**Warm Coach ❤️**, **Brutal Truth ☠️**, or **Funny Roast 😄**).
 4. **Action:** AI delivers one tiny 5-minute action step (or a 3-step checkable roadmap) to do right now.
@@ -42,7 +43,7 @@ These micro-excuses stop momentum before action even begins.
 ---
 
 ## 💻 Tech Stack
-* **Core:** HTML5, Vanilla CSS3, JavaScript (ES6+).
+* **Core:** HTML5, CSS3, Vanilla JavaScript (ES6+).
 * **AI Integration:** Gemini API / OpenAI API client-side fetch wrappers + robust JSON markdown stripper.
 * **Styling & FX:** Spatial Claymorphism, Double-Bezel Glass Containers, Web Audio Synth engine, Web Speech API.
 * **Testing & Quality:** Headless Playwright automated E2E test suite (`test.js`).
@@ -66,4 +67,5 @@ These micro-excuses stop momentum before action even begins.
 
 ---
 
-🔗 **Live App URL:** [https://vivekmed18-glitch.github.io/excuse-buster/](https://vivekmed18-glitch.github.io/excuse-buster/)
+🔗 **Live App URL:** [https://vivekmed18-glitch.github.io/excuse-buster/](https://vivekmed18-glitch.github.io/excuse-buster/)  
+📁 **GitHub Repository:** [https://github.com/vivekmed18-glitch/excuse-buster](https://github.com/vivekmed18-glitch/excuse-buster)
