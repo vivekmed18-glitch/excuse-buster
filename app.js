@@ -684,10 +684,13 @@ function generateMockResponse(text, tone) {
   
   const excuseName = (category === 'generic') ? `The "${text.trim()}" Delusion` : data.name;
   
-  const callouts = toneData.callouts || [toneData.callout];
-  const actions = toneData.actions || [toneData.action];
+  const callouts = toneData ? (toneData.callouts || [toneData.callout]) : [
+    (t) => `Waiting until later to handle "${t}" is a comforting lie. The energy won't arrive until you start moving.`
+  ];
+  const actions = toneData ? (toneData.actions || [toneData.action]) : [
+    (t) => `Spend 5 minutes making the smallest possible progress on "${t}".`
+  ];
   
-  // Use a pseudo-random seed based on time and text to guarantee variation on every click!
   const seed = Math.floor(Math.random() * 100);
   const selectedCallout = callouts[seed % callouts.length];
   const selectedAction = actions[seed % actions.length];
@@ -695,18 +698,42 @@ function generateMockResponse(text, tone) {
   const calloutText = typeof selectedCallout === 'function' ? selectedCallout(text.trim()) : selectedCallout;
   let actionText = typeof selectedAction === 'function' ? selectedAction(text.trim()) : selectedAction;
 
+  const actionTitle = state.roadmapMode ? "3-STEP HABIT ROADMAP" : "5-MINUTE ACTION";
+  let actionSteps = [actionText];
+
   if (state.roadmapMode) {
-    actionText = [
-      `Write down the single micro-step needed to start "${text.trim()}".`,
-      `Open the required tools, app, or workspace for "${text.trim()}".`,
-      `Execute 5 minutes of focused action without looking at your phone.`
-    ];
+    if (category === 'gym') {
+      actionSteps = [
+        "Locate workout clothing and place them directly in front of you.",
+        "Put on your training shoes and tie them immediately.",
+        "Walk outside the door and set a timer to movement for 5 minutes."
+      ];
+    } else if (category === 'coding') {
+      actionSteps = [
+        "Open your code editor and close any web browser tabs that distract you.",
+        "Create a single file 'app_test.js' or 'index.html' locally.",
+        "Write a 3-line boilerplate function that logs a victory statement."
+      ];
+    } else if (category === 'clean') {
+      actionSteps = [
+        "Locate three loose items lying out of place on the floor/desk.",
+        "Return all three items to their correct storage location.",
+        "Use a wet cloth or wipe to clean down your active desk surface."
+      ];
+    } else {
+      actionSteps = [
+        `Write down the single micro-step needed to start "${text.trim()}".`,
+        `Open the required tools, app, or workspace for "${text.trim()}".`,
+        `Execute 5 minutes of focused action without looking at your phone.`
+      ];
+    }
   }
 
   return {
-    excuse: excuseName,
+    real_excuse: excuseName,
     callout: calloutText,
-    action: actionText
+    action_title: actionTitle,
+    action_steps: actionSteps
   };
 }
 
@@ -1388,12 +1415,32 @@ function generateMockResponse(text, tone) {
 async function callGeminiAPI(excuseText, tone, apiKey) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
   
-  let actionPromptDesc = 'one specific task they can do in 5 minutes';
-  if (state.roadmapMode) {
-    actionPromptDesc = 'an array of exactly 3 sequential, progressive 5-minute action steps to demolish the excuse';
-  }
-  
-  const systemPrompt = `You are Excuse Buster, a sharp motivational coach. The user gives an excuse. Respond in exactly 3 short parts, strictly formatted as JSON. The JSON keys MUST be exactly: "excuse" (name the real excuse in one line), "callout" (bluntly explain why it's holding them back), and "action" (${actionPromptDesc}). Match the selected tone: Coach (warm but firm), Brutal (harsh and direct), or Funny (playful and satirical). Do not include any markdown backticks or formatting outside the raw JSON.`;
+  const selectedToneLabel = toneLabels[tone] || 'Warm Coach';
+  const formatMode = state.roadmapMode ? 'Roadmap' : 'Standard';
+
+  const systemPrompt = `You are the core engine of "Excuse Buster," an elite, agency-grade productivity agent designed to dismantle user procrastination. 
+
+The user will provide two inputs:
+1. [User Excuse]: The text stating why they are delaying a task.
+2. [Coach Tone]: One of three modes: 'Warm Coach', 'Brutal Roast', or 'Stoic Philosopher'.
+3. [Format Mode]: Either 'Standard' or 'Roadmap'.
+
+Your output must strictly return clean JSON structured exactly as follows:
+
+{
+  "real_excuse": "A sharp, one-sentence distillation of the psychological truth behind the excuse (e.g., Fear of failure, social anxiety, task paralysis). Do NOT just repeat the user's raw input.",
+  "callout": "A 2-3 sentence breakdown matching the requested [Coach Tone]. 
+              - 'Warm Coach': Empathetic, encouraging, highlights micro-steps.
+              - 'Brutal Roast': Witty, direct, unapologetic reality-check.
+              - 'Stoic Philosopher': Rooted in discipline, control of mind, Marcus Aurelius vibes.",
+  "action_title": "${state.roadmapMode ? '3-STEP HABIT ROADMAP' : '5-MINUTE ACTION'}",
+  "action_steps": []
+}
+
+CRITICAL RULES:
+- Never wrap the entire user raw text inside quotes for the headings. Treat it analytically.
+- Keep the steps highly actionable. Instead of "Work on it," use "Open the text document and write one single sentence."
+- Return RAW JSON ONLY. Do not include markdown backticks or formatting outside the raw JSON.`;
   
   const response = await fetch(url, {
     method: 'POST',
@@ -1401,7 +1448,7 @@ async function callGeminiAPI(excuseText, tone, apiKey) {
     body: JSON.stringify({
       contents: [{
         parts: [{
-          text: `${systemPrompt}\n\nUser Excuse: "${excuseText}"\nTone: ${tone}`
+          text: `${systemPrompt}\n\n[User Excuse]: "${excuseText}"\n[Coach Tone]: "${selectedToneLabel}"\n[Format Mode]: "${formatMode}"`
         }]
       }],
       generationConfig: {
@@ -1424,12 +1471,31 @@ async function callGeminiAPI(excuseText, tone, apiKey) {
 async function callOpenAIAPI(excuseText, tone, apiKey) {
   const url = 'https://api.openai.com/v1/chat/completions';
   
-  let actionPromptDesc = 'one specific task they can do in 5 minutes';
-  if (state.roadmapMode) {
-    actionPromptDesc = 'an array of exactly 3 sequential, progressive 5-minute action steps to demolish the excuse';
-  }
-  
-  const systemPrompt = `You are Excuse Buster, a sharp motivational coach. The user gives an excuse. Respond in exactly 3 short parts, strictly formatted as JSON. The JSON keys MUST be exactly: "excuse" (name the real excuse in one line), "callout" (bluntly explain why it's holding them back), and "action" (${actionPromptDesc}). Match the selected tone: Coach (warm but firm), Brutal (harsh and direct), or Funny (playful and satirical).`;
+  const selectedToneLabel = toneLabels[tone] || 'Warm Coach';
+  const formatMode = state.roadmapMode ? 'Roadmap' : 'Standard';
+
+  const systemPrompt = `You are the core engine of "Excuse Buster," an elite, agency-grade productivity agent designed to dismantle user procrastination. 
+
+The user will provide inputs:
+1. [User Excuse]: The text stating why they are delaying a task.
+2. [Coach Tone]: One of three modes: 'Warm Coach', 'Brutal Roast', or 'Stoic Philosopher'.
+3. [Format Mode]: Either 'Standard' or 'Roadmap'.
+
+Your output must strictly return clean JSON structured exactly as follows:
+
+{
+  "real_excuse": "A sharp, one-sentence distillation of the psychological truth behind the excuse (e.g., Fear of failure, social anxiety, task paralysis). Do NOT just repeat the user's raw input.",
+  "callout": "A 2-3 sentence breakdown matching the requested [Coach Tone]. 
+              - 'Warm Coach': Empathetic, encouraging, highlights micro-steps.
+              - 'Brutal Roast': Witty, direct, unapologetic reality-check.
+              - 'Stoic Philosopher': Rooted in discipline, control of mind, Marcus Aurelius vibes.",
+  "action_title": "${state.roadmapMode ? '3-STEP HABIT ROADMAP' : '5-MINUTE ACTION'}",
+  "action_steps": []
+}
+
+CRITICAL RULES:
+- Never wrap the entire user raw text inside quotes for the headings. Treat it analytically.
+- Keep the steps highly actionable. Instead of "Work on it," use "Open the text document and write one single sentence."`;
   
   const response = await fetch(url, {
     method: 'POST',
@@ -1442,7 +1508,7 @@ async function callOpenAIAPI(excuseText, tone, apiKey) {
       response_format: { type: "json_object" },
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Excuse: "${excuseText}"\nTone: ${tone}` }
+        { role: 'user', content: `[User Excuse]: "${excuseText}"\n[Coach Tone]: "${selectedToneLabel}"\n[Format Mode]: "${formatMode}"` }
       ],
       temperature: 0.7
     })
@@ -1612,27 +1678,51 @@ async function handleFormSubmit(e) {
       }
     }
     
-    if (!result || !result.excuse || !result.callout || !result.action) {
+    const realExcuse = result.real_excuse || result.excuse || "The Avoidance Loop";
+    const callout = result.callout || "Stop delaying the work.";
+    const actionTitle = result.action_title || (state.roadmapMode ? "3-STEP HABIT ROADMAP" : "5-MINUTE ACTION");
+    
+    let actionSteps = [];
+    if (Array.isArray(result.action_steps)) {
+      actionSteps = result.action_steps;
+    } else if (Array.isArray(result.action)) {
+      actionSteps = result.action;
+    } else if (typeof result.action === 'string') {
+      actionSteps = [result.action];
+    } else if (typeof result.action_steps === 'string') {
+      actionSteps = [result.action_steps];
+    } else {
+      actionSteps = ["Take 5 minutes of focused action right now."];
+    }
+
+    if (!realExcuse || !callout) {
       throw new Error("Invalid response format received from AI.");
     }
     
     state.lastExcuseText = excuseText;
-    state.lastBustedResponse = result;
+    state.lastBustedResponse = {
+      real_excuse: realExcuse,
+      excuse: realExcuse,
+      callout: callout,
+      action_title: actionTitle,
+      action_steps: actionSteps,
+      action: actionSteps
+    };
     VoiceCoach.cancel();
     
-    elements.resExcuse.textContent = result.excuse;
-    elements.resCallout.textContent = result.callout;
+    elements.resExcuse.textContent = realExcuse;
+    elements.resCallout.textContent = callout;
+    elements.actionEyebrow.innerHTML = `<i class="${state.roadmapMode ? 'ph-light ph-git-fork' : 'ph-light ph-lightning'}"></i> ${actionTitle}`;
     
     const resActionContainer = elements.resAction;
     const resRoadmapContainer = elements.resRoadmap;
     
-    if (Array.isArray(result.action)) {
+    if (actionSteps.length > 1) {
       resActionContainer.classList.add('hidden');
       resRoadmapContainer.classList.remove('hidden');
-      elements.actionEyebrow.innerHTML = '<i class="ph-light ph-git-fork"></i> 3-Step Habit Roadmap';
       
       resRoadmapContainer.innerHTML = '';
-      result.action.forEach((step, idx) => {
+      actionSteps.forEach((step, idx) => {
         const li = document.createElement('li');
         li.className = 'roadmap-step';
         li.innerHTML = `
@@ -1655,8 +1745,7 @@ async function handleFormSubmit(e) {
     } else {
       resRoadmapContainer.classList.add('hidden');
       resActionContainer.classList.remove('hidden');
-      elements.actionEyebrow.innerHTML = '<i class="ph-light ph-play-circle"></i> 5-Minute Action';
-      resActionContainer.textContent = result.action;
+      resActionContainer.textContent = actionSteps[0];
     }
     
     SynthAudio.playSwoosh();

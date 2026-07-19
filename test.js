@@ -56,8 +56,8 @@ const { chromium } = require('playwright');
   console.log('Typing second excuse for roadmap...');
   await page.fill('#excuse-input', 'I will clean my room tomorrow.');
   
-  console.log('Selecting "Funny" mode...');
-  await page.click('#tone-funny');
+  console.log('Selecting "Stoic Philosopher" mode...');
+  await page.click('#tone-stoic');
   
   console.log('Submitting excuse form for roadmap...');
   await page.click('#btn-bust');
