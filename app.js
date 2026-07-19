@@ -283,164 +283,436 @@ const SynthAudio = {
   }
 };
 
-// --- Mock Database for Offline/Initial Mode ---
+// --- // --- Variated & Dynamic Mock Database for Offline Mode ---
 const mockDatabase = {
   gym: {
     name: 'Fear of Discomfort & Inertia',
     coach: {
-      callout: 'Waiting for "next week" is a comforting lie. You are prioritizing temporary convenience over your long-term health and vitality. The perfect energy level will never arrive; you have to generate it by moving.',
-      action: 'Put on your exercise shoes right now. Do not think about the workout. Just step outside your door for 2 minutes.'
+      callouts: [
+        (t) => `Waiting until later to handle "${t}" is a comforting lie. The energy won't arrive until you start moving.`,
+        (t) => `Procrastinating on "${t}" is just your brain choosing temporary convenience over health and vitality.`,
+        (t) => `The hardest part of "${t}" is simply starting. Once you break the initial friction, momentum takes over.`
+      ],
+      actions: [
+        (t) => `Put on your workout shoes right now to address "${t}". Just step outside your door for 2 minutes.`,
+        (t) => `Do 60 seconds of light stretching right where you stand for "${t}".`,
+        (t) => `Drink a full glass of cold water and do 10 jumping jacks for "${t}".`
+      ]
     },
     brutal: {
-      callout: 'You are letting comfort run your life. Next week doesn\'t exist. You\'re just avoiding the initial sweat and feeling out of shape. Stop coddling yourself.',
-      action: 'Drop and do 10 squats immediately. No gym required. Do them right where you are standing.'
+      callouts: [
+        (t) => `Using "${t}" as an excuse is pure self-coddling. Next week doesn't exist. Sweat out the inertia today.`,
+        (t) => `You aren't unable to deal with "${t}"; you're just avoiding 5 minutes of basic effort. Stop making excuses.`,
+        (t) => `Every minute you spend making excuses like "${t}" is a minute you spend carrying guilt. Fix it now.`
+      ],
+      actions: [
+        (t) => `Drop and do 10 squats right now for "${t}". No excuses.`,
+        (t) => `Mute your phone and do 15 jumping jacks immediately for "${t}".`,
+        (t) => `Stand up and hold a plank for 30 seconds to smash "${t}".`
+      ]
     },
     funny: {
-      callout: 'Ah, "next week"—that mythical land where you are suddenly a disciplined Olympian with unlimited free time. Spoiler alert: Next week you is exactly the same as today you.',
-      action: 'Do 10 high-knees on the spot while screaming "I am an athlete!" at the top of your lungs.'
+      callouts: [
+        (t) => `"${t}" — Ah, that mythical land where you're suddenly a disciplined Olympian! Spoiler: Next week you is identical to today you.`,
+        (t) => `Your brain wrote an Oscar-winning tragedy about "${t}" just to avoid 5 minutes of sweat. Truly legendary fiction.`,
+        (t) => `Waiting to feel athletic before starting "${t}" is like waiting for a pizza to bake itself in the fridge.`
+      ],
+      actions: [
+        (t) => `Do 10 high-knees while shouting "I am destroying ${t}!" at the top of your lungs.`,
+        (t) => `Strike a victory pose for 10 seconds, then do 5 pushups for "${t}".`,
+        (t) => `Walk briskly in a circle around your desk while humming a Rocky training montage theme.`
+      ]
     }
   },
   fatigue: {
     name: 'Energy Illusion & Fatigue Shield',
     coach: {
-      callout: 'Feeling tired is often your brain\'s defense trick to avoid friction, not physical exhaustion. 5 minutes of movement will wake you up faster than lying down.',
-      action: 'Splash cold water on your face right now and do 5 deep breaths standing up.'
+      callouts: [
+        (t) => `Feeling tired during "${t}" is often your brain's defense trick to avoid effort, not actual physical exhaustion.`,
+        (t) => `A 5-minute effort on "${t}" will wake you up faster than lying down or scrolling social media.`,
+        (t) => `Don't confuse mental inertia with actual exhaustion. Give "${t}" just 180 seconds.`
+      ],
+      actions: [
+        (t) => `Splash cold water on your face right now and do 5 deep breaths for "${t}".`,
+        (t) => `Drink a full glass of cold water standing up before starting "${t}".`,
+        (t) => `Open a window for fresh air and spend 2 minutes outlining "${t}".`
+      ]
     },
     brutal: {
-      callout: 'You aren\'t tired; you\'re uninspired and scrolling on your phone. You\'ll magically have energy for social media in 10 minutes. Stand up and get to work.',
-      action: 'Drink a full glass of cold water right now and do 10 jumping jacks.'
+      callouts: [
+        (t) => `You aren't tired for "${t}"; you're uninspired and scrolling. You'll magically have energy for YouTube in 10 minutes.`,
+        (t) => `Using tiredness to escape "${t}" is self-sabotage. Stand up and get to work.`,
+        (t) => `Naps won't finish "${t}". Stop using fatigue as a shield against productivity.`
+      ],
+      actions: [
+        (t) => `Drink a full glass of cold water right now and do 10 jumping jacks for "${t}".`,
+        (t) => `Stand up immediately and complete 3 minutes of work on "${t}".`,
+        (t) => `Wash your hands with cold water, mute all notifications, and start "${t}".`
+      ]
     },
     funny: {
-      callout: 'Ah yes, sudden dramatic narcolepsy right when effort calls. Your pillow is not a life strategy and naps won\'t pay your bills.',
-      action: 'Stand up, shake your arms like a wet dog for 10 seconds, and start working.'
+      callouts: [
+        (t) => `Ah yes, sudden dramatic narcolepsy right when "${t}" calls! Your pillow isn't a life strategy.`,
+        (t) => `Claiming you are too tired for "${t}" while holding a phone screen 2 inches from your face is peak comedy.`,
+        (t) => `Your brain is faking a system crash to avoid 5 minutes of "${t}". Reboot your motivation.`
+      ],
+      actions: [
+        (t) => `Stand up, shake your arms like a wet dog for 10 seconds, and start "${t}".`,
+        (t) => `Yawn loudly, take one sip of water, and spend 3 minutes working on "${t}".`,
+        (t) => `Tell your pillow "Not today!" and open the workspace for "${t}".`
+      ]
     }
   },
   study: {
     name: 'Academic Avoidance & Perfectionism',
     coach: {
-      callout: 'You don\'t need to finish the whole subject today. Just opening your notes breaks the wall of resistance and reduces study anxiety.',
-      action: 'Open your textbook or document to page 1 and read literally 3 sentences out loud.'
+      callouts: [
+        (t) => `You don't need to master the entire subject today. Just opening notes for "${t}" breaks the wall of resistance.`,
+        (t) => `Perfectionism is making "${t}" look bigger than it is. Focus on micro-progress today.`,
+        (t) => `Study anxiety disappears once you make the first move on "${t}".`
+      ],
+      actions: [
+        (t) => `Open your textbook or document for "${t}" to page 1 and read 3 sentences out loud.`,
+        (t) => `Write down just the title or heading for "${t}" on a blank document.`,
+        (t) => `Review 1 single bullet point or formula related to "${t}".`
+      ]
     },
     brutal: {
-      callout: 'You\'re putting off studying because you\'re terrified of confronting what you don\'t know yet. Cramming at 2 AM is self-sabotage.',
-      action: 'Write down just the title of your assignment at the top of a blank document.'
+      callouts: [
+        (t) => `You're putting off "${t}" because you're terrified of confronting what you don't know yet. Cramming at 2 AM is self-sabotage.`,
+        (t) => `Staring at a blank screen won't solve "${t}". Stop avoiding the hard work.`,
+        (t) => `You aren't unprepared for "${t}"; you're just avoiding effort. Get it over with.`
+      ],
+      actions: [
+        (t) => `Write down just the title of your assignment for "${t}" on a blank document right now.`,
+        (t) => `Mute your phone, set a 5-minute timer, and write the first paragraph for "${t}".`,
+        (t) => `Read the main question for "${t}" 3 times out loud and write one bullet point.`
+      ]
     },
     funny: {
-      callout: 'Staring at the cover of your textbook for 3 hours does not count as learning by osmosis. Your desk is not a magic portal.',
-      action: 'Read 1 page out loud in a dramatic Shakespearean theater voice.'
+      callouts: [
+        (t) => `Staring at the cover of your notes for "${t}" does not count as learning by osmosis. Your desk is not a magic portal.`,
+        (t) => `You're waiting for a wizard to grant you instant knowledge about "${t}". Spoiler: Magic isn't on the syllabus.`,
+        (t) => `Your textbook for "${t}" is getting lonely. Open it before it files for abandonment.`
+      ],
+      actions: [
+        (t) => `Read 1 page for "${t}" out loud in a dramatic Shakespearean theater voice.`,
+        (t) => `Summarize 1 sentence of "${t}" like you are explaining it to a 5-year-old alien.`,
+        (t) => `Write 1 line of study notes while humming a quiz show theme song.`
+      ]
     }
   },
   time: {
     name: 'Procrastination by Scheduling',
     coach: {
-      callout: 'The "perfect free afternoon" will never arrive. High performers work in small, focused 5-minute pockets of time.',
-      action: 'Set a timer for 300 seconds right now and complete one small sub-task before it rings.'
+      callouts: [
+        (t) => `The "perfect free afternoon" for "${t}" will never arrive. High performers work in small 5-minute pockets.`,
+        (t) => `Don't wait for a 3-hour block of time to start "${t}". Take 5 minutes right now.`,
+        (t) => `Scheduling "${t}" for later is often just postponing the friction. Break the loop today.`
+      ],
+      actions: [
+        (t) => `Set a timer for 300 seconds right now and complete one small sub-task for "${t}".`,
+        (t) => `Spend 3 minutes organizing the materials needed for "${t}".`,
+        (t) => `Do 120 seconds of prep work for "${t}" right away.`
+      ]
     },
     brutal: {
-      callout: 'You aren\'t too busy; you just prioritized doomscrolling over what matters. Stop pretending your calendar is out of your control.',
-      action: 'Mute your phone, put it face down, and do 5 minutes of work right now.'
+      callouts: [
+        (t) => `You aren't too busy for "${t}"; you just prioritized doomscrolling over what matters. Stop pretending your calendar is out of your control.`,
+        (t) => `Saying you have no time for "${t}" while checking notifications is self-deception.`,
+        (t) => `Make time for "${t}" now or pay for it with stress later. Choice is yours.`
+      ],
+      actions: [
+        (t) => `Mute your phone, put it face down, and do 5 minutes of work on "${t}".`,
+        (t) => `Close 5 browser tabs unrelated to "${t}" and start a 300-second timer.`,
+        (t) => `Execute 1 single action step for "${t}" right where you sit.`
+      ]
     },
     funny: {
-      callout: '"Tomorrow" is a mythical fantasy island where you have 48 hours in a day, zero cravings, and superhuman focus. It doesn\'t exist.',
-      action: 'Do 3 minutes of work right now just to confuse and amaze your future self.'
+      callouts: [
+        (t) => `"Tomorrow" is a mythical fantasy island where you have 48 hours in a day, zero cravings, and superhuman focus on "${t}".`,
+        (t) => `You've rescheduled "${t}" so many times your calendar thinks it's a recurring holiday.`,
+        (t) => `Future You is currently writing a complaint letter about Current You avoiding "${t}".`
+      ],
+      actions: [
+        (t) => `Do 3 minutes of work on "${t}" right now just to confuse and amaze your future self.`,
+        (t) => `Work on "${t}" for 180 seconds while whispering "I am from the future" to yourself.`,
+        (t) => `Complete 1 tiny sub-step for "${t}" before your timer hits zero.`
+      ]
     }
   },
   motivation: {
     name: 'Emotional Regulation Trap',
     coach: {
-      callout: 'Action creates motivation, not the other way around. Waiting to "feel like it" means waiting forever.',
-      action: 'Start working for just 120 seconds. If you still hate it after 2 minutes, you have permission to stop.'
+      callouts: [
+        (t) => `Action creates motivation for "${t}", not the other way around. Waiting to "feel like it" means waiting forever.`,
+        (t) => `Don't wait for your mood to change before starting "${t}". Movement triggers inspiration.`,
+        (t) => `You don't need passion to begin "${t}"; you just need 2 minutes of focus.`
+      ],
+      actions: [
+        (t) => `Start working on "${t}" for just 120 seconds. If you still hate it after 2 minutes, you can stop.`,
+        (t) => `Focus on "${t}" without judging your mood for 3 minutes.`,
+        (t) => `Do 1 simple action item for "${t}" right now.`
+      ]
     },
     brutal: {
-      callout: 'Action doesn\'t care about your mood. Professionals show up and deliver whether they feel inspired or not.',
-      action: 'Close all non-essential tabs and spend 5 minutes working without judging the output.'
+      callouts: [
+        (t) => `Action doesn't care about your mood for "${t}". Professionals show up whether they feel inspired or not.`,
+        (t) => `Relying on "good vibes" to finish "${t}" is why you're stuck. Get disciplined.`,
+        (t) => `Your feelings are irrelevant to getting "${t}" done. Take action now.`
+      ],
+      actions: [
+        (t) => `Close all non-essential tabs and spend 5 minutes working on "${t}".`,
+        (t) => `Mute all non-work notifications and complete 1 step for "${t}".`,
+        (t) => `Set a timer for 300 seconds and work on "${t}" without stopping.`
+      ]
     },
     funny: {
-      callout: 'Your motivation is currently hibernating under a blanket of excuses. Wake it up with a cold dose of reality.',
-      action: 'Put on high-energy workout music and work for the exact duration of one song.'
+      callouts: [
+        (t) => `Your motivation for "${t}" is currently hibernating under a blanket of excuses. Wake it up!`,
+        (t) => `Waiting to feel inspired for "${t}" is like waiting for your cat to pay rent.`,
+        (t) => `Your mood wrote a letter resigning from "${t}". Deny the request.`
+      ],
+      actions: [
+        (t) => `Put on high-energy music and work on "${t}" for the duration of one song.`,
+        (t) => `Do 5 jumping jacks, slap your hands together, and launch into "${t}".`,
+        (t) => `Work on "${t}" for 3 minutes while wearing an imaginary victory crown.`
+      ]
     }
   },
   overwhelmed: {
     name: 'Scope Paralysis & Overthinking',
     coach: {
-      callout: 'When the mountain looks too tall, stop staring at the peak. Just look at the single step directly in front of your feet.',
-      action: 'Brainstorm just 3 micro-steps on a scrap piece of paper. Pick the easiest one to start.'
+      callouts: [
+        (t) => `When "${t}" looks too tall, stop staring at the whole mountain. Just look at the single step in front of you.`,
+        (t) => `Break "${t}" down into micro-pieces. One small task removes the overwhelm.`,
+        (t) => `Clarity comes from moving on "${t}", not from overthinking.`
+      ],
+      actions: [
+        (t) => `Brainstorm just 3 micro-steps on paper for "${t}". Pick the easiest one to start.`,
+        (t) => `Isolate the single simplest sub-step for "${t}" and do it in 2 minutes.`,
+        (t) => `Write down 1 single sentence outlining the goal for "${t}".`
+      ]
     },
     brutal: {
-      callout: 'You\'re overcomplicating things on purpose so you don\'t have to start. Complexity is your favorite shield against effort.',
-      action: 'Pick the absolute smallest, dumbest part of the project and complete it in 3 minutes.'
+      callouts: [
+        (t) => `You're overcomplicating "${t}" on purpose so you don't have to start. Complexity is your shield.`,
+        (t) => `Stop analyzing "${t}" to death. Pick a point and start executing.`,
+        (t) => `Overthinking "${t}" is just sophisticated laziness. Do something now.`
+      ],
+      actions: [
+        (t) => `Pick the absolute smallest, dumbest part of "${t}" and finish it in 3 minutes.`,
+        (t) => `Set a 180-second timer and write down raw rough notes for "${t}".`,
+        (t) => `Eliminate all options and execute the first sub-step of "${t}".`
+      ]
     },
     funny: {
-      callout: 'You\'re treating a simple task like you\'re trying to calculate quantum physics on a napkin. It\'s not rocket science.',
-      action: 'Write an intentionally terrible first draft. Horrible work is 100x better than no work.'
+      callouts: [
+        (t) => `You're treating "${t}" like you're calculating quantum physics on a napkin. It's not rocket science!`,
+        (t) => `Your brain is building a 500-page manual on why "${t}" is impossible. Shred the manual.`,
+        (t) => `Overthinking "${t}" is burning more calories than actually doing it.`
+      ],
+      actions: [
+        (t) => `Write an intentionally terrible first draft for "${t}". Horrible work is 100x better than no work.`,
+        (t) => `Doodle a silly diagram of "${t}" for 60 seconds, then start working.`,
+        (t) => `Complete 1 micro-task for "${t}" while making racecar sound effects.`
+      ]
     }
   },
   finance: {
     name: 'Financial Avoidance & Anxiety',
     coach: {
-      callout: 'Avoiding money tasks only inflates financial stress. Looking at the numbers gives you immediate clarity and control.',
-      action: 'Log into your account or sheet for 60 seconds. Just look at the current numbers.'
+      callouts: [
+        (t) => `Avoiding "${t}" only inflates financial stress. Looking at the numbers gives you immediate clarity and control.`,
+        (t) => `Taking charge of "${t}" today builds peace of mind for tomorrow.`,
+        (t) => `One quick check on "${t}" removes the anxiety of the unknown.`
+      ],
+      actions: [
+        (t) => `Log into your account or spreadsheet for "${t}" for 60 seconds. Just look.`,
+        (t) => `Write down 1 upcoming item for "${t}" on paper.`,
+        (t) => `Spend 3 minutes reviewing current figures for "${t}".`
+      ]
     },
     brutal: {
-      callout: 'Hiding your eyes won\'t make bills or budgets disappear. Facing the truth today saves you from panic tomorrow.',
-      action: 'Write down your top 2 upcoming expenses on paper right now.'
+      callouts: [
+        (t) => `Hiding your eyes won't make "${t}" disappear. Facing the truth today saves you from panic tomorrow.`,
+        (t) => `Ignoring "${t}" doesn't solve it; it makes it worse. Open the file now.`,
+        (t) => `Stop running from "${t}". Handle the numbers like an adult.`
+      ],
+      actions: [
+        (t) => `Write down your top 2 figures related to "${t}" on paper right now.`,
+        (t) => `Open your financial portal or app for "${t}" and inspect it for 3 minutes.`,
+        (t) => `Complete 1 mandatory action item for "${t}" immediately.`
+      ]
     },
     funny: {
-      callout: 'Your bank app is hoping you\'ll check on it before your card gets declined at a coffee shop. Take a breath and look.',
-      action: 'Open your banking app, count to three, and look at the balance without hyperventilating.'
+      callouts: [
+        (t) => `Your bank app is hoping you'll check on "${t}" before your card gets declined at a coffee shop.`,
+        (t) => `Hiding under a blanket won't pay for "${t}". Take a breath and look.`,
+        (t) => `Your budget for "${t}" is sending a search and rescue party for you.`
+      ],
+      actions: [
+        (t) => `Open your banking or finance tool for "${t}", count to three, and look without hyperventilating.`,
+        (t) => `Log in to check "${t}" while humming a dramatic heist movie soundtrack.`,
+        (t) => `List 1 line item for "${t}" on a sticky note right away.`
+      ]
     }
   },
   coding: {
     name: 'Fear of Failure / Imposter Syndrome',
     coach: {
-      callout: 'Complexity can feel paralyzing. You don\'t need to understand the entire codebase to write the first line of code. Progress is built block by block.',
-      action: 'Open your code editor, create a blank file, and write a single console.log statement. That\'s it. You\'ve started.'
+      callouts: [
+        (t) => `Complexity in "${t}" can feel paralyzing. You don't need to understand the whole architecture to write line 1.`,
+        (t) => `Progress on "${t}" is built block by block. Write one simple function.`,
+        (t) => `Don't fear bugs in "${t}". Code is built to be broken and fixed.`
+      ],
+      actions: [
+        (t) => `Open your editor for "${t}", create a blank file, and write a single console.log statement.`,
+        (t) => `Write 3 lines of pseudo-code outlining "${t}".`,
+        (t) => `Fix or write 1 single line of code for "${t}".`
+      ]
     },
     brutal: {
-      callout: 'You are waiting for inspiration to compile. It won\'t. You are hiding behind tutorials because building real things is risky. Write buggy code, just write something.',
-      action: 'Open your IDE and write one single function that prints "Hello World". Save the file. Close the tab.'
+      callouts: [
+        (t) => `You're waiting for inspiration to compile for "${t}". It won't. Stop hiding behind tutorials.`,
+        (t) => `Write buggy code for "${t}", just write something. Sitting idle builds nothing.`,
+        (t) => `Stop over-engineering "${t}". Ship the simplest version.`
+      ],
+      actions: [
+        (t) => `Open your IDE and write one single function for "${t}". Save the file.`,
+        (t) => `Close all browser tabs unrelated to "${t}" and code for 300 seconds.`,
+        (t) => `Commit 1 working or partial block of code for "${t}".`
+      ]
     },
     funny: {
-      callout: 'You aren\'t waiting to learn more; you are waiting for a magical fairy to write the repository for you. It\'s not going to happen, and ChatGPT is getting tired of holding your hand.',
-      action: 'Create a repository named "excuse-buster-temp" and write a comment saying: "// I was forced to write this by an AI."'
+      callouts: [
+        (t) => `You aren't waiting to learn more about "${t}"; you're waiting for a magical fairy to write the repo for you.`,
+        (t) => `ChatGPT is getting tired of holding your hand through "${t}". Time to type yourself!`,
+        (t) => `Your compiler for "${t}" is dying of boredom waiting for your input.`
+      ],
+      actions: [
+        (t) => `Create a test file for "${t}" and write a comment: "// I was forced to write this by an AI."`,
+        (t) => `Write 5 lines of code for "${t}" while pretending to be a 90s hacker in a movie.`,
+        (t) => `Type one working function for "${t}" and play a fanfare sound.`
+      ]
     }
   },
   clean: {
     name: 'Dread of Boring Tasks',
     coach: {
-      callout: 'A cluttered space reflects a cluttered mind. You don\'t have to clean the whole house. Just focus on a single corner to clear your path.',
-      action: 'Pick up exactly three items off your desk or floor and put them in their proper place.'
+      callouts: [
+        (t) => `A cluttered space reflects a cluttered mind regarding "${t}". Focus on a single small area.`,
+        (t) => `You don't have to clean everything for "${t}". Just clear 1 square foot.`,
+        (t) => `Tidying up "${t}" for 3 minutes brings instant mental clarity.`
+      ],
+      actions: [
+        (t) => `Pick up exactly 3 items related to "${t}" and put them in their proper place.`,
+        (t) => `Spend 120 seconds organizing 1 drawer or surface for "${t}".`,
+        (t) => `Wipe down 1 single counter or desk space for "${t}".`
+      ]
     },
     brutal: {
-      callout: 'You are living in your own mess because you lack 5 minutes of basic discipline. Letting chores pile up drains your subconscious energy. Clean it up.',
-      action: 'Set a timer for 180 seconds. Pick up trash and wipe down your immediate workspace until the timer rings.'
+      callouts: [
+        (t) => `You're living in mess because you lack 5 minutes of basic discipline for "${t}". Clean it up.`,
+        (t) => `Letting chores like "${t}" pile up drains your energy. Fix it now.`,
+        (t) => `Stop making excuses for "${t}". Take 180 seconds to tidy.`
+      ],
+      actions: [
+        (t) => `Set a timer for 180 seconds and pick up trash/items for "${t}".`,
+        (t) => `Rinse or clean 1 item for "${t}" right where you stand.`,
+        (t) => `Clear off your immediate workstation for "${t}".`
+      ]
     },
     funny: {
-      callout: 'You are waiting for the dust bunnies to form a union and clean the room themselves. Sadly, they have terrible work ethic. Take charge.',
-      action: 'Take one dirty mug/glass to the kitchen sink and rinse it. Just one. Do not look at the rest.'
+      callouts: [
+        (t) => `You're waiting for the dust bunnies around "${t}" to form a union and clean themselves.`,
+        (t) => `Your room for "${t}" looks like a tornado had a minor disagreement with your laundry.`,
+        (t) => `Cleaning "${t}" won't bite you. Promise.`
+      ],
+      actions: [
+        (t) => `Take one dirty mug/glass for "${t}" to the sink right now. Do not look at the rest.`,
+        (t) => `Pick up 5 random objects for "${t}" while singing a cleaning montage song.`,
+        (t) => `Put away 2 pieces of clothing for "${t}" before your timer runs out.`
+      ]
     }
   },
   generic: {
     name: 'Classic Procrastination Loop',
     coach: {
-      callout: 'You are waiting for the "perfect moment" to begin. But waiting only breeds anxiety. The easiest way to reduce the weight of this task is to make the first move, however small.',
-      action: 'Spend exactly 2 minutes doing the very first sub-step of this task. Write down one word, check one link, or open one document.'
+      callouts: [
+        (t) => `Claiming "${t}" is your brain's protective buffer against discomfort. Focus on 1 tiny step.`,
+        (t) => `Waiting for the "perfect time" for "${t}" breeds anxiety. Make the first move.`,
+        (t) => `You don't need to finish "${t}" right now. Just commit 300 seconds.`
+      ],
+      actions: [
+        (t) => `Spend 5 minutes making the smallest possible progress on "${t}".`,
+        (t) => `Write down 1 micro-task for "${t}" and execute it immediately.`,
+        (t) => `Open the main tool or document for "${t}" and look at it for 2 minutes.`
+      ]
     },
     brutal: {
-      callout: 'This excuse is a shield to protect you from effort. Every hour you spend putting this off is an hour you spend carrying the guilt of not doing it. Just get it over with.',
-      action: 'Stop thinking. Close all browser tabs unrelated to the task, and spend 5 minutes working on it with a timer running.'
+      callouts: [
+        (t) => `Using "${t}" as an excuse is pure self-delusion. Stop carrying the guilt of avoidance.`,
+        (t) => `Saying "${t}" protects you from effort. Get over the initial friction.`,
+        (t) => `You aren't helpless with "${t}"; you're just procrastinating. Handle it now.`
+      ],
+      actions: [
+        (t) => `Mute all distractions and tackle "${t}" for 300 seconds right now.`,
+        (t) => `Close 3 distracting browser tabs and work on "${t}".`,
+        (t) => `Set a timer for 180 seconds and execute step 1 of "${t}".`
+      ]
     },
     funny: {
-      callout: 'A highly creative piece of fiction. Your brain is working overtime writing an entire novel just to avoid 5 minutes of actual labor.',
-      action: 'Do the easiest, smallest part of this task right now while humming a victory theme song.'
+      callouts: [
+        (t) => `"${t}" — An Oscar-worthy piece of fiction! Your brain wrote a full screenplay to avoid work.`,
+        (t) => `You've spent more energy avoiding "${t}" than it actually takes to finish it.`,
+        (t) => `Your excuse "${t}" belongs in a museum of creative procrastination.`
+      ],
+      actions: [
+        (t) => `Work on "${t}" for 5 minutes while humming a superhero battle theme.`,
+        (t) => `Do 3 minutes of work on "${t}" while wearing an imaginary victory cape.`,
+        (t) => `Execute the easiest part of "${t}" right now while celebrating.`
+      ]
     }
   }
 };
 
+function generateMockResponse(text, tone) {
+  const category = classifyExcuseLocally(text);
+  const data = mockDatabase[category] || mockDatabase['generic'];
+  const toneData = data[tone] || data['coach'];
+  
+  const excuseName = (category === 'generic') ? `The "${text.trim()}" Delusion` : data.name;
+  
+  const callouts = toneData.callouts || [toneData.callout];
+  const actions = toneData.actions || [toneData.action];
+  
+  // Use a pseudo-random seed based on time and text to guarantee variation on every click!
+  const seed = Math.floor(Math.random() * 100);
+  const selectedCallout = callouts[seed % callouts.length];
+  const selectedAction = actions[seed % actions.length];
+  
+  const calloutText = typeof selectedCallout === 'function' ? selectedCallout(text.trim()) : selectedCallout;
+  let actionText = typeof selectedAction === 'function' ? selectedAction(text.trim()) : selectedAction;
+
+  if (state.roadmapMode) {
+    actionText = [
+      `Write down the single micro-step needed to start "${text.trim()}".`,
+      `Open the required tools, app, or workspace for "${text.trim()}".`,
+      `Execute 5 minutes of focused action without looking at your phone.`
+    ];
+  }
+
+  return {
+    excuse: excuseName,
+    callout: calloutText,
+    action: actionText
+  };
+}
+
 // --- DOM Elements ---
 const elements = {
   form: document.getElementById('excuse-form'),
-  input: document.getElementById('excuse-input'),
   charCurrent: document.getElementById('char-current'),
   toneBtns: document.querySelectorAll('.tone-circle-btn'),
   btnBust: document.getElementById('btn-bust'),
