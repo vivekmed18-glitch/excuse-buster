@@ -1320,14 +1320,13 @@ async function handleFormSubmit(e) {
     let result = null;
     
     if (state.apiEngine === 'mock') {
-      await new Promise(r => setTimeout(r, 900));
+      await new Promise(r => setTimeout(r, 600));
       result = generateMockResponse(excuseText, state.selectedTone);
     } else {
-      if (!state.apiKey) {
-        throw new Error(`API key required for ${state.apiEngine.toUpperCase()} engine. Please configure it in Settings.`);
-      }
-      
       try {
+        if (!state.apiKey) {
+          throw new Error(`API key missing for ${state.apiEngine.toUpperCase()} engine`);
+        }
         if (state.apiEngine === 'gemini') {
           result = await callGeminiAPI(excuseText, state.selectedTone, state.apiKey);
         } else if (state.apiEngine === 'openai') {
@@ -1336,7 +1335,7 @@ async function handleFormSubmit(e) {
       } catch (apiErr) {
         console.warn("Primary API failed, falling back to local database:", apiErr);
         showToast(`API error: ${apiErr.message}. Swapping to local offline engine.`, 'error');
-        await new Promise(r => setTimeout(r, 600));
+        await new Promise(r => setTimeout(r, 500));
         result = generateMockResponse(excuseText, state.selectedTone);
       }
     }
@@ -1426,6 +1425,15 @@ async function handleFormSubmit(e) {
 elements.input.addEventListener('input', () => {
   const current = elements.input.value.length;
   elements.charCurrent.textContent = current;
+});
+
+elements.input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (!elements.btnBust.disabled) {
+      handleFormSubmit(e);
+    }
+  }
 });
 
 const toneLabels = {
