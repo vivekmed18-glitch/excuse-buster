@@ -26,25 +26,28 @@ These micro-excuses kill momentum before action even begins.
 ## 🛠️ How It Works
 1. **Input:** User types what they keep avoiding (e.g., *"can't go out for walk"*).
 2. **Identify:** AI names the underlying excuse (e.g., *Energy Illusion & Fatigue Shield*).
-3. **Callout:** AI calls it out matched to your chosen tone (**Warm Coach ❤️**, **Brutal Truth ☠️**, or **Funny Roast 😄**).
+3. **Callout:** AI calls it out matched to your chosen tone (**Warm Coach ❤️**, **Brutal Roast ☠️**, or **Stoic Philosopher 📜**).
 4. **Action:** AI delivers one tiny 5-minute action step (or a 3-step checkable roadmap) to do right now.
 
 ---
 
 ## 🔥 Key Features
-* 🎭 **3 Personality Modes:** Warm Coach / Brutal Truth / Funny Roast.
+* 🎭 **3 Personality Modes:** Warm Coach / Brutal Roast / Stoic Philosopher.
 * 🔮 **3D Spatial Depth & Claymorphic UI:** Split-screen desktop dashboard with 3D liquid marble selectors and responsive mobile stacking.
 * 🎙️ **AI Voice Coaching (TTS):** Audio button that reads the roasts aloud using custom voice pitches and rates per persona.
-* 📈 **Persistent Analytics & Streak Counter:** Real-time local tracking of excuses demolished, burn streaks, and trigger category breakdowns.
-* 📅 **Calendar & Push Notifications:** Direct Google Calendar scheduling and native Web Notification reminders.
-* 🖼️ **Shareable Canvas Cards:** Aspect ratio customizer (Square 1:1, Story 9:16, Wallpaper 16:9) with single-click PNG canvas export.
-* ⚡ **Resilient Fallback Engine:** Offline local database with dynamic excuse roaster so the app never fails or gives generic tips.
+* 🔊 **Web Audio Synthesizer Engine:** Real-time synthesized click, thud, and swoosh audio feedback on interaction.
+* 📈 **Persistent Analytics & Burn Streak Odometer:** Real-time local tracking of excuses demolished, active burn streaks, and trigger category breakdowns.
+* 🧱 **3-Step Habit Roadmap Mode:** Toggle switch converting overwhelming tasks into 3 checkable micro-habit steps with tick sound effects.
+* 🌐 **Community Feed / Wall of Shame:** Real-time anonymous public ticker displaying excuse roasts across the community.
+* 📅 **Calendar & Push Notifications:** Direct Google Calendar event scheduling and native desktop Web Notification reminders.
+* 🖼️ **Multi-Format Shareable Canvas Cards:** Aspect ratio customizer (Square 1:1, Story 9:16, Wallpaper 16:9) with single-click PNG canvas export.
+* ⚡ **Resilient Tri-Engine Processing:** Gemini API (1.5 Flash), OpenAI API (GPT-4o Mini), and offline local simulator with dynamic excuse roaster.
 
 ---
 
 ## 💻 Tech Stack
 * **Core:** HTML5, CSS3, Vanilla JavaScript (ES6+).
-* **AI Integration:** Gemini API / OpenAI API client-side fetch wrappers + robust JSON markdown stripper.
+* **AI Processing:** Gemini API & OpenAI API client-side fetch wrappers + robust JSON markdown stripper.
 * **Styling & FX:** Spatial Claymorphism, Double-Bezel Glass Containers, Web Audio Synth engine, Web Speech API.
 * **Testing & Quality:** Headless Playwright automated E2E test suite (`test.js`).
 
@@ -54,16 +57,17 @@ These micro-excuses kill momentum before action even begins.
 1. **Type:** *"I'll start the gym next week."*
 2. **Submit:** Watch the digital glitch effect, stamp slam bounce, and low-frequency synth thud.
 3. **Review:** See the named excuse (*Fear of Discomfort & Inertia*), callout, and 5-minute action.
-4. **Switch Persona:** Click the **Funny Roast** circle (`😄`) → resubmit to see the tone shift to a satirical Olympian roast.
-5. **View Counter:** Highlight the *"Excuses Busted"* counter updating in real-time.
+4. **Switch Persona:** Click the **Stoic Philosopher** circle (`📜`) → resubmit to see Marcus Aurelius style discipline advice.
+5. **Toggle Roadmap:** Switch on **3-Step Habit Roadmap** to unpack the excuse into checkable micro-habit steps.
+6. **View Counter & Ticker:** Highlight the rolling digit odometer and real-time Wall of Shame community ticker.
 
 ---
 
 ## 🏆 Why It Wins
 * **Instantly Understandable:** Zero learning curve — input excuse, get busted, take action.
-* **Funny & Highly Shareable:** Custom canvas card downloads tailored for Instagram stories, X/Twitter, and wallpaper backgrounds.
-* **Genuinely Useful:** Turns vague overwhelm into actionable 5-minute micro-habits.
-* **Flawless Polish:** Built with agency-grade aesthetics, sound synthesis, voice coaching, and bulletproof offline fallbacks.
+* **Funny, Deep & Highly Shareable:** Custom canvas card downloads tailored for Instagram stories, X/Twitter, and desktop wallpapers.
+* **Genuinely Useful:** Turns vague overwhelm into actionable 5-minute micro-habits and checkable roadmaps.
+* **Flawless Polish:** Built with agency-grade spatial aesthetics, sound synthesis, voice coaching, and bulletproof offline fallbacks.
 
 ---
 
