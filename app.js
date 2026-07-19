@@ -300,6 +300,96 @@ const mockDatabase = {
       action: 'Do 10 high-knees on the spot while screaming "I am an athlete!" at the top of your lungs.'
     }
   },
+  fatigue: {
+    name: 'Energy Illusion & Fatigue Shield',
+    coach: {
+      callout: 'Feeling tired is often your brain\'s defense trick to avoid friction, not physical exhaustion. 5 minutes of movement will wake you up faster than lying down.',
+      action: 'Splash cold water on your face right now and do 5 deep breaths standing up.'
+    },
+    brutal: {
+      callout: 'You aren\'t tired; you\'re uninspired and scrolling on your phone. You\'ll magically have energy for social media in 10 minutes. Stand up and get to work.',
+      action: 'Drink a full glass of cold water right now and do 10 jumping jacks.'
+    },
+    funny: {
+      callout: 'Ah yes, sudden dramatic narcolepsy right when effort calls. Your pillow is not a life strategy and naps won\'t pay your bills.',
+      action: 'Stand up, shake your arms like a wet dog for 10 seconds, and start working.'
+    }
+  },
+  study: {
+    name: 'Academic Avoidance & Perfectionism',
+    coach: {
+      callout: 'You don\'t need to finish the whole subject today. Just opening your notes breaks the wall of resistance and reduces study anxiety.',
+      action: 'Open your textbook or document to page 1 and read literally 3 sentences out loud.'
+    },
+    brutal: {
+      callout: 'You\'re putting off studying because you\'re terrified of confronting what you don\'t know yet. Cramming at 2 AM is self-sabotage.',
+      action: 'Write down just the title of your assignment at the top of a blank document.'
+    },
+    funny: {
+      callout: 'Staring at the cover of your textbook for 3 hours does not count as learning by osmosis. Your desk is not a magic portal.',
+      action: 'Read 1 page out loud in a dramatic Shakespearean theater voice.'
+    }
+  },
+  time: {
+    name: 'Procrastination by Scheduling',
+    coach: {
+      callout: 'The "perfect free afternoon" will never arrive. High performers work in small, focused 5-minute pockets of time.',
+      action: 'Set a timer for 300 seconds right now and complete one small sub-task before it rings.'
+    },
+    brutal: {
+      callout: 'You aren\'t too busy; you just prioritized doomscrolling over what matters. Stop pretending your calendar is out of your control.',
+      action: 'Mute your phone, put it face down, and do 5 minutes of work right now.'
+    },
+    funny: {
+      callout: '"Tomorrow" is a mythical fantasy island where you have 48 hours in a day, zero cravings, and superhuman focus. It doesn\'t exist.',
+      action: 'Do 3 minutes of work right now just to confuse and amaze your future self.'
+    }
+  },
+  motivation: {
+    name: 'Emotional Regulation Trap',
+    coach: {
+      callout: 'Action creates motivation, not the other way around. Waiting to "feel like it" means waiting forever.',
+      action: 'Start working for just 120 seconds. If you still hate it after 2 minutes, you have permission to stop.'
+    },
+    brutal: {
+      callout: 'Action doesn\'t care about your mood. Professionals show up and deliver whether they feel inspired or not.',
+      action: 'Close all non-essential tabs and spend 5 minutes working without judging the output.'
+    },
+    funny: {
+      callout: 'Your motivation is currently hibernating under a blanket of excuses. Wake it up with a cold dose of reality.',
+      action: 'Put on high-energy workout music and work for the exact duration of one song.'
+    }
+  },
+  overwhelmed: {
+    name: 'Scope Paralysis & Overthinking',
+    coach: {
+      callout: 'When the mountain looks too tall, stop staring at the peak. Just look at the single step directly in front of your feet.',
+      action: 'Brainstorm just 3 micro-steps on a scrap piece of paper. Pick the easiest one to start.'
+    },
+    brutal: {
+      callout: 'You\'re overcomplicating things on purpose so you don\'t have to start. Complexity is your favorite shield against effort.',
+      action: 'Pick the absolute smallest, dumbest part of the project and complete it in 3 minutes.'
+    },
+    funny: {
+      callout: 'You\'re treating a simple task like you\'re trying to calculate quantum physics on a napkin. It\'s not rocket science.',
+      action: 'Write an intentionally terrible first draft. Horrible work is 100x better than no work.'
+    }
+  },
+  finance: {
+    name: 'Financial Avoidance & Anxiety',
+    coach: {
+      callout: 'Avoiding money tasks only inflates financial stress. Looking at the numbers gives you immediate clarity and control.',
+      action: 'Log into your account or sheet for 60 seconds. Just look at the current numbers.'
+    },
+    brutal: {
+      callout: 'Hiding your eyes won\'t make bills or budgets disappear. Facing the truth today saves you from panic tomorrow.',
+      action: 'Write down your top 2 upcoming expenses on paper right now.'
+    },
+    funny: {
+      callout: 'Your bank app is hoping you\'ll check on it before your card gets declined at a coffee shop. Take a breath and look.',
+      action: 'Open your banking app, count to three, and look at the balance without hyperventilating.'
+    }
+  },
   coding: {
     name: 'Fear of Failure / Imposter Syndrome',
     coach: {
@@ -341,7 +431,7 @@ const mockDatabase = {
       action: 'Stop thinking. Close all browser tabs unrelated to the task, and spend 5 minutes working on it with a timer running.'
     },
     funny: {
-      callout: 'A highly creative piece of fiction. You should write a novel instead of making excuses. Your brain is working overtime just to avoid 5 minutes of actual labor.',
+      callout: 'A highly creative piece of fiction. Your brain is working overtime writing an entire novel just to avoid 5 minutes of actual labor.',
       action: 'Do the easiest, smallest part of this task right now while humming a victory theme song.'
     }
   }
@@ -929,7 +1019,25 @@ function classifyExcuseLocally(text) {
   if (clean.includes('gym') || clean.includes('workout') || clean.includes('exercise') || clean.includes('run') || clean.includes('fit') || clean.includes('sport') || clean.includes('cardio') || clean.includes('walk') || clean.includes('jog') || clean.includes('hike') || clean.includes('step') || clean.includes('stroll')) {
     return 'gym';
   }
-  if (clean.includes('code') || clean.includes('program') || clean.includes('project') || clean.includes('write') || clean.includes('learn') || clean.includes('developer') || clean.includes('repo') || clean.includes('bug') || clean.includes('test')) {
+  if (clean.includes('tired') || clean.includes('sleep') || clean.includes('exhausted') || clean.includes('drained') || clean.includes('bed') || clean.includes('rest') || clean.includes('late') || clean.includes('night') || clean.includes('nap')) {
+    return 'fatigue';
+  }
+  if (clean.includes('study') || clean.includes('book') || clean.includes('read') || clean.includes('math') || clean.includes('exam') || clean.includes('homework') || clean.includes('assignment') || clean.includes('school') || clean.includes('paper') || clean.includes('essay') || clean.includes('test')) {
+    return 'study';
+  }
+  if (clean.includes('busy') || clean.includes('time') || clean.includes('tomorrow') || clean.includes('later') || clean.includes('schedule') || clean.includes('monday') || clean.includes('next week')) {
+    return 'time';
+  }
+  if (clean.includes('motivation') || clean.includes('feel like') || clean.includes('mood') || clean.includes('bored') || clean.includes('vibe') || clean.includes('lazy') || clean.includes('feeling')) {
+    return 'motivation';
+  }
+  if (clean.includes('overwhelmed') || clean.includes('big') || clean.includes('hard') || clean.includes('difficult') || clean.includes('confused') || clean.includes('how') || clean.includes('start') || clean.includes('where') || clean.includes('lost')) {
+    return 'overwhelmed';
+  }
+  if (clean.includes('money') || clean.includes('pay') || clean.includes('bill') || clean.includes('cost') || clean.includes('buy') || clean.includes('expensive') || clean.includes('finance') || clean.includes('budget')) {
+    return 'finance';
+  }
+  if (clean.includes('code') || clean.includes('program') || clean.includes('project') || clean.includes('write') || clean.includes('learn') || clean.includes('developer') || clean.includes('repo') || clean.includes('bug')) {
     return 'coding';
   }
   if (clean.includes('clean') || clean.includes('room') || clean.includes('wash') || clean.includes('dishes') || clean.includes('chore') || clean.includes('laundry') || clean.includes('vacuum') || clean.includes('tidy')) {
@@ -941,11 +1049,31 @@ function classifyExcuseLocally(text) {
 function generateMockResponse(text, tone) {
   const category = classifyExcuseLocally(text);
   const data = mockDatabase[category];
-  const responseData = data[tone];
+  let responseData = data ? data[tone] : null;
   
-  let excuseName = data.name;
-  if (category === 'generic' && text.length > 5 && text.trim().slice(-1) !== '.') {
-    excuseName = 'Classic Procrastination Loop';
+  let excuseName = data ? data.name : 'The Avoidance Loop';
+  const trimmedText = text.trim();
+
+  // Dynamic custom roaster for unlisted inputs
+  if (category === 'generic' || !responseData) {
+    excuseName = `The "${trimmedText}" Delusion`;
+    
+    if (tone === 'coach') {
+      responseData = {
+        callout: `Claiming "${trimmedText}" is your brain's protective buffer against discomfort. You don't need to finish everything today; you just need to make the first move.`,
+        action: `Spend 5 minutes making the smallest possible progress on "${trimmedText}".`
+      };
+    } else if (tone === 'brutal') {
+      responseData = {
+        callout: `Using "${trimmedText}" as an excuse is pure self-delusion. Every hour you spend putting this off is an hour you carry the guilt of avoiding it.`,
+        action: `Mute all distractions and tackle "${trimmedText}" for 300 seconds right now.`
+      };
+    } else if (tone === 'funny') {
+      responseData = {
+        callout: `"${trimmedText}" — An Oscar-worthy piece of fiction! Your brain wrote an entire dramatic screenplay just to avoid 5 minutes of real labor.`,
+        action: `Work on "${trimmedText}" for 5 minutes while humming a dramatic superhero battle theme.`
+      };
+    }
   }
   
   let actionResult = responseData.action;
@@ -954,7 +1082,7 @@ function generateMockResponse(text, tone) {
       actionResult = [
         "Locate workout clothing and place them directly in front of you.",
         "Put on your training shoes and tie them immediately.",
-        "Walk outside the door and set a timer to jog for exactly 5 minutes."
+        "Walk outside the door and set a timer to movement for 5 minutes."
       ];
     } else if (category === 'coding') {
       actionResult = [
@@ -970,13 +1098,13 @@ function generateMockResponse(text, tone) {
       ];
     } else {
       actionResult = [
-        "Isolate the single smallest sub-step of the task you are avoiding.",
-        "Set a timer and spend exactly 120 seconds executing that sub-step.",
-        "Jot down the next sub-step to keep momentum going for tomorrow."
+        `Write down the single micro-step needed to start "${trimmedText}".`,
+        `Open the required tools, app, or workspace for "${trimmedText}".`,
+        `Execute 5 minutes of focused action without looking at your phone.`
       ];
     }
   }
-  
+
   return {
     excuse: excuseName,
     callout: responseData.callout,
