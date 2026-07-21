@@ -1594,6 +1594,122 @@ button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 3px
   line-height: 1.6;
 }
 
+/* --- Kinetic Brutalism: a deliberate pressure system, not decorative noise --- */
+:root {
+  --brutal-paper: #f4f1e8;
+  --brutal-ink: #11110f;
+  --brutal-acid: #d9ff00;
+  --brutal-orange: #ff5a1f;
+  --brutal-line: rgba(244, 241, 232, 0.2);
+}
 
+body {
+  align-items: flex-start;
+  background-color: var(--brutal-ink);
+  background-image:
+    linear-gradient(var(--brutal-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--brutal-line) 1px, transparent 1px);
+  background-size: 42px 42px;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(circle at 90% 8%, rgba(217, 255, 0, 0.16), transparent 26%), radial-gradient(circle at 8% 80%, rgba(255, 90, 31, 0.14), transparent 30%);
+  animation: backgroundPulse 8s ease-in-out infinite alternate;
+}
+
+body::after {
+  content: 'EXCUSE DETECTED  /  ACTION REQUIRED  /  START BEFORE YOU FEEL READY  /  EXCUSE DETECTED  /  ACTION REQUIRED  /  ';
+  position: fixed;
+  z-index: 20;
+  left: -8%;
+  bottom: 0;
+  width: 116%;
+  overflow: hidden;
+  padding: 9px 0;
+  color: var(--brutal-ink);
+  background: var(--brutal-acid);
+  border-top: 2px solid var(--brutal-ink);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  animation: commandTicker 17s linear infinite;
+}
+
+.grain-overlay { opacity: 0.035; z-index: 30; }
+.glow-orb { display: none; }
+.app-wrapper { z-index: 10; max-width: 1240px; padding: 28px 24px 68px; }
+
+.app-header {
+  margin-bottom: 54px;
+  padding: 0 0 18px;
+  border-bottom: 2px solid var(--brutal-paper);
+}
+
+.logo-icon { color: var(--brutal-acid); text-shadow: none; }
+.logo-text, .main-heading, .block-value { font-family: var(--font-display); }
+.logo-text { font-size: 25px; font-weight: 800; letter-spacing: -0.06em; text-transform: uppercase; }
+.logo-text span { color: var(--brutal-acid); }
+.welcome-eyebrow-container { position: relative; }
+.eyebrow-tag { border: 2px solid var(--brutal-paper); border-radius: 0; color: var(--brutal-paper); background: transparent; font-weight: 800; }
+.main-heading { max-width: 800px; font-size: clamp(42px, 7vw, 88px) !important; line-height: 0.88; letter-spacing: -0.07em; text-transform: uppercase; }
+.main-subheading { color: rgba(244, 241, 232, 0.78); font-size: 16px !important; }
+
+.double-bezel-outer, .claymorphism-card {
+  background: var(--brutal-ink) !important;
+  border: 2px solid var(--brutal-paper) !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  box-shadow: 8px 8px 0 var(--brutal-orange) !important;
+  backdrop-filter: none !important;
+}
+.double-bezel-outer::before { display: none; }
+.double-bezel-inner { background: rgba(17, 17, 15, 0.92) !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; padding: 28px !important; }
+.split-right-panel .double-bezel-outer { box-shadow: 8px 8px 0 var(--brutal-acid) !important; }
+
+textarea { border: 2px solid var(--brutal-paper); border-radius: 0; background: #161613; color: var(--brutal-paper); font-size: 16px; }
+textarea:focus { border-color: var(--brutal-acid); background: #1b1b17; box-shadow: 6px 6px 0 var(--brutal-acid); }
+.section-label, .active-tone-indicator, .char-count { color: rgba(244, 241, 232, 0.65); font-weight: 800; }
+
+.tone-circle-btn { width: 52px; height: 52px; border: 2px solid var(--brutal-paper); border-radius: 0; background: transparent; box-shadow: none; }
+.tone-circle-btn::before { display: none; }
+.tone-circle-btn:hover, .tone-circle-btn.active { transform: translate(-3px, -3px); border-color: var(--brutal-acid); color: var(--brutal-ink); background: var(--brutal-acid); box-shadow: 4px 4px 0 var(--brutal-paper); }
+.tone-circle-btn[data-tone="brutal"].active { border-color: var(--brutal-orange); color: var(--brutal-paper); background: var(--brutal-orange); box-shadow: 4px 4px 0 var(--brutal-paper); }
+
+.primary-cta-btn { min-height: 58px; border: 2px solid var(--brutal-ink); border-radius: 0; padding: 8px 10px 8px 18px; color: var(--brutal-ink); background: var(--brutal-acid); box-shadow: 6px 6px 0 var(--brutal-orange); text-transform: uppercase; letter-spacing: 0.04em; }
+.btn-icon-wrapper { width: 40px; height: 40px; border-radius: 0; color: var(--brutal-paper); background: var(--brutal-ink); }
+.primary-cta-btn:hover { color: var(--brutal-paper); background: var(--brutal-orange); transform: translate(-2px, -2px); box-shadow: 9px 9px 0 var(--brutal-acid); }
+.primary-cta-btn:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 var(--brutal-acid); }
+
+.result-section { animation: stampIn 360ms cubic-bezier(.34, 1.56, .64, 1) both; }
+.block-eyebrow { color: var(--brutal-acid); font-weight: 800; }
+.block-highlight, .personalized-advice { border-radius: 0; border: 2px solid var(--brutal-acid); background: rgba(217, 255, 0, 0.08); box-shadow: none; }
+.personalized-advice { border-color: var(--brutal-orange); }
+.status-label { color: var(--brutal-paper); font-weight: 800; }
+.status-indicator { border-radius: 0; background: var(--brutal-acid); box-shadow: none; }
+.icon-btn, .secondary-btn, .aspect-btn { border-radius: 0; }
+
+@keyframes commandTicker { from { transform: translateX(0); } to { transform: translateX(-22%); } }
+@keyframes backgroundPulse { from { transform: scale(1); opacity: 0.65; } to { transform: scale(1.08); opacity: 1; } }
+@keyframes stampIn { from { opacity: 0; transform: translate(24px, 24px) rotate(1deg); } to { opacity: 1; transform: translate(0, 0) rotate(0); } }
+
+@media (max-width: 767px) {
+  .app-wrapper { padding: 18px 16px 58px; }
+  .app-header { margin-bottom: 34px; }
+  .main-heading { font-size: clamp(40px, 14vw, 60px) !important; }
+  .double-bezel-inner { padding: 20px !important; }
+  body::after { font-size: 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+  body::after { position: static; display: block; width: 100%; transform: none !important; }
+}
 
 

@@ -11,7 +11,7 @@ const { chromium } = require('playwright');
   
   const targetUrl = process.env.TEST_URL || 'https://vivekmed18-glitch.github.io/excuse-buster/';
   console.log(`Navigating to target URL: ${targetUrl}...`);
-  await page.goto(targetUrl);
+  await page.goto(targetUrl, { waitUntil: 'domcontentloaded' });
   
 
 
