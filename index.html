@@ -73,7 +73,7 @@
           <!-- Excuse Input Area -->
           <section class="double-bezel-outer input-section claymorphism-card">
             <div class="double-bezel-inner">
-              <form id="excuse-form" novalidate>
+              <form id="excuse-form" novalidate aria-describedby="form-status">
                 <div class="input-group">
                   <label for="excuse-input" class="sr-only">What excuse are you making today?</label>
                   <textarea 
@@ -84,6 +84,7 @@
                   ></textarea>
                   <div class="char-count"><span id="char-current">0</span>/280</div>
                 </div>
+                <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
 
                 <!-- Personality Mode Selectors (Circular Style) -->
                 <div class="tone-selectors">
@@ -129,14 +130,14 @@
             <div class="double-bezel-inner" id="result-card-inner">
               
               <!-- Placeholder State (Shown initially) -->
-              <div class="result-placeholder-content" id="result-placeholder">
+              <div class="result-placeholder-content" id="result-placeholder" aria-live="polite">
                 <div class="placeholder-icon"><i class="ph-light ph-sparkle"></i></div>
                 <h3>Waiting for Excuse</h3>
                 <p>Type your excuse on the left and hit Bust Procrastination to reveal the AI roasting card here.</p>
               </div>
 
               <!-- Active Content State (Initially Hidden) -->
-              <div class="result-active-content hidden" id="result-active-wrapper">
+              <div class="result-active-content hidden" id="result-active-wrapper" tabindex="-1" aria-live="polite">
                 <!-- Decorative Status Header -->
                 <div class="card-status-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                   <div style="display: flex; align-items: center; gap: 8px;">
@@ -168,6 +169,10 @@
                     <p class="block-value text-action" id="res-action">Put your sneakers on right now. Don't think about the gym. Just tie your shoes.</p>
                     <ul class="roadmap-list hidden" id="res-roadmap"></ul>
                   </div>
+                  <aside class="result-block personalized-advice" aria-label="Personalized procrastination insight">
+                    <div class="block-eyebrow"><i class="ph-light ph-crosshair"></i> Your pattern</div>
+                    <p class="block-value text-body" id="res-advice"></p>
+                  </aside>
                 </div>
 
                 <!-- Card Customizer Aspect Ratio Selector -->
@@ -288,7 +293,7 @@
                   <i class="ph-light ph-eye"></i>
                 </button>
               </div>
-              <span class="field-help" id="api-key-help">Stored locally in your browser's LocalStorage. Never leaves your client.</span>
+              <span class="field-help" id="api-key-help">Used only for this browser session. It is not saved to LocalStorage.</span>
             </div>
 
             <!-- Theme Selection Group -->
@@ -395,6 +400,7 @@
   <canvas id="share-card-canvas" style="display: none;"></canvas>
 
   <!-- Core Scripts -->
-  <script src="app.js?v=3.0.0"></script>
+  <script src="core.js?v=4.0.0"></script>
+  <script src="app.js?v=4.0.0"></script>
 </body>
 </html>

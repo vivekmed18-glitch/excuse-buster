@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "test": "node test.js"
+    "test": "node --test core.test.js",
+    "test:e2e": "node test.js"
   },
   "dependencies": {
     "playwright": "^1.61.1"

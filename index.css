@@ -382,6 +382,10 @@ textarea::placeholder {
   color: var(--text-muted);
 }
 
+button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 3px solid var(--accent-amber); outline-offset: 3px; }
+.form-status { min-height: 1.3em; margin: -12px 0 14px; color: var(--text-secondary); font-size: 13px; }
+.form-status.is-error { color: #fda4af; }
+
 .char-count {
   position: absolute;
   bottom: 12px;
@@ -692,6 +696,8 @@ textarea::placeholder {
   color: var(--text-primary);
   font-weight: 600;
 }
+
+.personalized-advice { border-left: 3px solid var(--accent-amber); padding: 2px 0 2px 14px; }
 
 /* Action Specific Borders based on active Tone */
 .double-bezel-outer.tone-coach { border-color: rgba(245, 158, 11, 0.2); }
@@ -1019,6 +1025,11 @@ textarea::placeholder {
   .result-actions {
     grid-template-cols: 1fr;
   }
+  .header-logo h1 { font-size: 20px; }
+  .odometer-container { display: none; }
+  .welcome-eyebrow-container { margin-bottom: 22px !important; }
+  textarea { height: 140px; font-size: 16px; }
+  .primary-cta-btn { min-height: 52px; }
 }
 
 /* Spinner & Spin Animation */
@@ -1582,7 +1593,6 @@ textarea::placeholder {
   max-width: 320px;
   line-height: 1.6;
 }
-
 
 
 

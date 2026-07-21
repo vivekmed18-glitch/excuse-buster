@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Playwright and test output
+playwright-report/
+playwright/.cache/
+test-results/
+blob-report/
+
+# Local coverage and OS files
+coverage/
+.DS_Store
+Thumbs.db

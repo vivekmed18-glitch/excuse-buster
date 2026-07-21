@@ -7,6 +7,43 @@
 
 ---
 
+## Build Week architecture update
+
+The app now separates browser presentation from the decision-making pipeline:
+
+```
+User input -> core.js trigger analysis -> response orchestrator -> AI provider
+                                                     |                 |
+                                                     +-- local coach <--+
+                                                           |
+                                               validated response -> accessible UI
+```
+
+- `core.js` is a dependency-free, testable domain module. It classifies a procrastination trigger, validates provider output, creates personalized advice from local history, and owns the timeout-aware fallback orchestration.
+- `app.js` is the UI adapter. It selects the requested provider, renders results, records local analytics, and never needs to decide whether malformed API output is safe to display.
+- Provider calls time out after 12 seconds. Missing keys, network failures, invalid JSON, HTTP errors, and incomplete model output all use the local coach instead of leaving the user stranded.
+- API keys are held only for the current browser session. Existing persisted API-key data is removed on startup; use a server-side proxy before deploying provider keys in production.
+- The result now includes a pattern insight based on the user's most frequent local trigger, such as fatigue, task overwhelm, or time scarcity.
+
+### Quality and accessibility changes
+
+- Live status text explains analysis, local fallback, and errors without relying on animation or color.
+- Results announce to assistive technology and receive keyboard focus after generation.
+- Keyboard focus is consistently visible; buttons and text input retain touch-friendly sizing on small screens.
+- Mobile styling tightens the header, improves textarea legibility, and preserves a clear one-column action layout.
+
+### Tests
+
+Run the deterministic core suite with:
+
+```bash
+npm.cmd test
+```
+
+It covers trigger classification, personalization, response normalization, fallback behavior, and timeout reporting. The existing browser smoke test remains available with `npm.cmd run test:e2e` (it targets the deployed URL by default).
+
+---
+
 ## 🎯 Problem
 People don’t fail because of big obstacles — they fail because of small excuses:
 * *"I’ll do it later."*
@@ -46,7 +83,7 @@ These micro-excuses stop momentum before action even begins.
 
 ## 💻 Tech Stack
 * **Core:** HTML5, Vanilla CSS3, JavaScript (ES6+).
-* **AI Integration:** Gemini API / OpenAI API client-side fetch wrappers + robust JSON markdown stripper.
+* **AI Integration:** Gemini API / OpenAI API adapters, validated JSON responses, a 12-second timeout, and a private local-coach fallback.
 * **Styling & FX:** Spatial Claymorphism, Double-Bezel Glass Containers, Web Audio Synth engine, Web Speech API.
 * **Testing & Quality:** Headless Playwright automated E2E test suite (`test.js`).
 
@@ -86,14 +123,19 @@ Open the local address displayed by the command in your browser.
 ---
 
 ## 🧪 Testing
-Install the automated-testing dependency:
+Install the locked dependency set:
 ```bash
-npm install
+npm ci
 ```
 
-Run the Playwright end-to-end test:
+Run the deterministic core-logic tests:
 ```bash
 npm test
+```
+
+Run the Playwright end-to-end test against the deployed app:
+```bash
+npm run test:e2e
 ```
 
 The test verifies:
@@ -103,9 +145,9 @@ The test verifies:
 * Three-Step Habit Roadmap mode generates exactly three steps.
 * The Stoic Philosopher coach mode can be selected.
 
-To test a different deployment or local server:
+To test a local server rather than the deployed app:
 ```bash
-TEST_URL=http://localhost:8000 npm test
+TEST_URL=http://localhost:8000 npm run test:e2e
 ```
 
 ### Testing Without an API Key
@@ -113,7 +155,7 @@ No API key is required for judging.
 
 Open Settings and leave Local Simulator selected. This mode allows judges to test the complete user flow immediately without creating an account or supplying credentials.
 
-Optional external AI engines can also be configured through the settings panel. Keys entered through the interface are stored locally in the browser.
+Optional external AI engines can also be configured through the settings panel. Keys are held only in memory for the current browser session and are never written to LocalStorage. A provider error, malformed response, missing key, or timeout automatically uses the local coach so the user still gets a validated action plan.
 
 ---
 
@@ -150,13 +192,16 @@ GPT-5.6 was used meaningfully during product development and design rather than 
 
 ---
 
-## 💡 Key Product Decisions
-Several important decisions were made during development:
+## 💡 Developer product and engineering decisions
+The developer made the final product and engineering decisions, including:
 * **Immediate action over generic advice:** Every result ends with either one five-minute action or a three-step roadmap.
 * **Multiple coaching personalities:** Users can choose a supportive, direct, or philosophical response style.
 * **No-key testing:** Local Simulator mode allows anyone to evaluate the app immediately.
 * **Visible results beside the input:** The split-screen interface reduces navigation and makes the transformation easy to understand.
 * **Shareable outputs:** Users can copy their result or export it in social-media-friendly dimensions.
+* **Safe resilience over a blank error screen:** external AI is optional; the local coach is the reliable default and response contracts are validated before rendering.
+* **Private defaults:** API keys are session-only, and no key is needed for a reviewer to test the complete flow.
+* **Accessible feedback:** status, errors, and generated results are announced and keyboard focus is moved to the result; responsive controls remain usable on mobile.
 * **Progress reinforcement:** Local analytics and streak tracking make repeated use feel rewarding.
 
 ---
@@ -196,4 +241,3 @@ A current Chromium, Firefox, or Safari-based browser is recommended.
 ---
 
 🔗 **Live App URL:** [https://vivekmed18-glitch.github.io/excuse-buster/](https://vivekmed18-glitch.github.io/excuse-buster/)
-

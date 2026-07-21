@@ -3,7 +3,7 @@ const state = {
   bustedCount: parseInt(localStorage.getItem('excuse_busted_count')) || 0,
   selectedTone: 'coach',
   apiEngine: localStorage.getItem('excuse_api_engine') || 'mock',
-  apiKey: localStorage.getItem('excuse_api_key') || '',
+  apiKey: '', // session-only: never persist provider credentials in localStorage
   activeTheme: localStorage.getItem('excuse_buster_theme') || 'amber',
   roadmapMode: false,
   selectedAspect: '1:1',
@@ -749,6 +749,8 @@ const elements = {
   resCallout: document.getElementById('res-callout'),
   resAction: document.getElementById('res-action'),
   resRoadmap: document.getElementById('res-roadmap'),
+  resAdvice: document.getElementById('res-advice'),
+  formStatus: document.getElementById('form-status'),
   actionEyebrow: document.getElementById('action-eyebrow'),
   btnCopy: document.getElementById('btn-copy'),
   btnDownload: document.getElementById('btn-download'),
@@ -1315,6 +1317,7 @@ function parseRobustJSON(text) {
 }
 
 function classifyExcuseLocally(text) {
+  if (window.ExcuseBusterCore) return window.ExcuseBusterCore.classifyExcuse(text);
   const clean = text.toLowerCase();
   if (clean.includes('gym') || clean.includes('workout') || clean.includes('exercise') || clean.includes('run') || clean.includes('fit') || clean.includes('sport') || clean.includes('cardio') || clean.includes('walk') || clean.includes('jog') || clean.includes('hike') || clean.includes('step') || clean.includes('stroll')) {
     return 'gym';
@@ -1379,7 +1382,7 @@ CRITICAL RULES:
 - Keep the steps highly actionable. Instead of "Work on it," use "Open the text document and write one single sentence."
 - Return RAW JSON ONLY. Do not include markdown backticks or formatting outside the raw JSON.`;
   
-  const response = await fetch(url, {
+  const requestOptions = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -1392,14 +1395,8 @@ CRITICAL RULES:
         responseMimeType: "application/json"
       }
     })
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error?.message || 'Gemini API connection failed.');
-  }
-
-  const result = await response.json();
+  };
+  const result = await window.ExcuseBusterCore.requestJson(url, requestOptions, fetch);
   const rawText = result.candidates[0].content.parts[0].text;
   return parseRobustJSON(rawText);
 }
@@ -1434,7 +1431,7 @@ CRITICAL RULES:
 - Never wrap the entire user raw text inside quotes for the headings. Treat it analytically.
 - Keep the steps highly actionable. Instead of "Work on it," use "Open the text document and write one single sentence."`;
   
-  const response = await fetch(url, {
+  const requestOptions = {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1449,14 +1446,8 @@ CRITICAL RULES:
       ],
       temperature: 0.7
     })
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error?.message || 'OpenAI API connection failed.');
-  }
-
-  const result = await response.json();
+  };
+  const result = await window.ExcuseBusterCore.requestJson(url, requestOptions, fetch);
   const rawText = result.choices[0].message.content;
   return parseRobustJSON(rawText);
 }
@@ -1557,9 +1548,7 @@ function init() {
     toggleAPIKeyInputVisibility(state.apiEngine);
   }
   
-  if (state.apiKey) {
-    elements.apiKeyInput.value = state.apiKey;
-  }
+  localStorage.removeItem('excuse_api_key');
 
   if (elements.soundToggle) {
     elements.soundToggle.checked = SynthAudio.enabled;
@@ -1582,7 +1571,14 @@ async function handleFormSubmit(e) {
   e.preventDefault();
   
   const excuseText = elements.input.value.trim();
-  if (!excuseText) return;
+  if (!excuseText) {
+    elements.formStatus.textContent = 'Tell your coach what is getting in the way first.';
+    elements.formStatus.classList.add('is-error');
+    elements.input.focus();
+    return;
+  }
+  elements.formStatus.textContent = 'Analyzing the pattern behind this excuse…';
+  elements.formStatus.classList.remove('is-error');
   
   elements.btnBust.classList.add('glitch-active');
   SynthAudio.playClick();
@@ -1592,27 +1588,25 @@ async function handleFormSubmit(e) {
   elements.btnBust.querySelector('.btn-icon-wrapper i').className = 'ph-light ph-spinner-gap spin-animation';
   
   try {
-    let result = null;
-    
-    if (state.apiEngine === 'mock') {
-      await new Promise(r => setTimeout(r, 600));
-      result = generateMockResponse(excuseText, state.selectedTone);
+    const input = { excuseText, tone: state.selectedTone, roadmapMode: state.roadmapMode };
+    const remote = async () => {
+      if (state.apiEngine === 'mock') return generateMockResponse(excuseText, state.selectedTone);
+      if (!state.apiKey) throw new Error(`Add a ${state.apiEngine.toUpperCase()} API key in Settings, or use Local Coach.`);
+      return state.apiEngine === 'gemini'
+        ? callGeminiAPI(excuseText, state.selectedTone, state.apiKey)
+        : callOpenAIAPI(excuseText, state.selectedTone, state.apiKey);
+    };
+    const outcome = await window.ExcuseBusterCore.createResponseOrchestrator({
+      remote,
+      fallback: () => generateMockResponse(excuseText, state.selectedTone)
+    })(input);
+    const result = outcome.response;
+    if (outcome.source === 'local' && state.apiEngine !== 'mock') {
+      console.warn('AI request failed; using local coach.', outcome.error);
+      elements.formStatus.textContent = 'AI is unavailable, so your private local coach stepped in.';
+      showToast('AI unavailable — using the local coach.', 'info');
     } else {
-      try {
-        if (!state.apiKey) {
-          throw new Error(`API key missing for ${state.apiEngine.toUpperCase()} engine`);
-        }
-        if (state.apiEngine === 'gemini') {
-          result = await callGeminiAPI(excuseText, state.selectedTone, state.apiKey);
-        } else if (state.apiEngine === 'openai') {
-          result = await callOpenAIAPI(excuseText, state.selectedTone, state.apiKey);
-        }
-      } catch (apiErr) {
-        console.warn("Primary API failed, falling back to local database:", apiErr);
-        showToast(`API error: ${apiErr.message}. Swapping to local offline engine.`, 'error');
-        await new Promise(r => setTimeout(r, 500));
-        result = generateMockResponse(excuseText, state.selectedTone);
-      }
+      elements.formStatus.textContent = state.apiEngine === 'mock' ? 'Local coach response ready.' : 'AI coach response ready.';
     }
     
     const realExcuse = result.real_excuse || result.excuse || "The Avoidance Loop";
@@ -1709,8 +1703,16 @@ async function handleFormSubmit(e) {
     localStorage.setItem('excuse_busted_count', state.bustedCount);
     updateOdometer(state.bustedCount);
     Analytics.trackBust(excuseText);
+    const history = Analytics.getHistory();
+    const advice = window.ExcuseBusterCore.getPersonalizedAdvice(history);
+    elements.resAdvice.textContent = advice.occurrences > 1
+      ? `Most common trigger: ${advice.trigger}. ${advice.message}`
+      : `Early signal: ${advice.trigger}. ${advice.message}`;
+    elements.resultActiveWrapper.focus({ preventScroll: true });
     
   } catch (err) {
+    elements.formStatus.textContent = 'Something went wrong. Please try again.';
+    elements.formStatus.classList.add('is-error');
     showToast(`Error: ${err.message}`, 'error');
   } finally {
     elements.btnBust.classList.remove('glitch-active');
@@ -1737,7 +1739,8 @@ elements.input.addEventListener('keydown', (e) => {
 const toneLabels = {
   coach: 'Warm Coach',
   brutal: 'Brutal Truth',
-  funny: 'Funny Roast'
+  funny: 'Funny Roast',
+  stoic: 'Stoic Philosopher'
 };
 
 elements.toneBtns.forEach(btn => {
@@ -1805,7 +1808,6 @@ elements.settingsForm.addEventListener('submit', (e) => {
   SynthAudio.enabled = soundVal;
   
   localStorage.setItem('excuse_api_engine', selectedEngine);
-  localStorage.setItem('excuse_api_key', keyVal);
   localStorage.setItem('excuse_sound_enabled', soundVal);
   localStorage.setItem('excuse_buster_theme', state.activeTheme);
   
