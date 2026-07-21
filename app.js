@@ -740,6 +740,7 @@ function generateMockResponse(text, tone) {
 // --- DOM Elements ---
 const elements = {
   form: document.getElementById('excuse-form'),
+  input: document.getElementById('excuse-input'),
   charCurrent: document.getElementById('char-current'),
   toneBtns: document.querySelectorAll('.tone-circle-btn'),
   btnBust: document.getElementById('btn-bust'),
@@ -1345,71 +1346,7 @@ function classifyExcuseLocally(text) {
   return 'generic';
 }
 
-function generateMockResponse(text, tone) {
-  const category = classifyExcuseLocally(text);
-  const data = mockDatabase[category];
-  let responseData = data ? data[tone] : null;
-  
-  let excuseName = data ? data.name : 'The Avoidance Loop';
-  const trimmedText = text.trim();
 
-  // Dynamic custom roaster for unlisted inputs
-  if (category === 'generic' || !responseData) {
-    excuseName = `The "${trimmedText}" Delusion`;
-    
-    if (tone === 'coach') {
-      responseData = {
-        callout: `Claiming "${trimmedText}" is your brain's protective buffer against discomfort. You don't need to finish everything today; you just need to make the first move.`,
-        action: `Spend 5 minutes making the smallest possible progress on "${trimmedText}".`
-      };
-    } else if (tone === 'brutal') {
-      responseData = {
-        callout: `Using "${trimmedText}" as an excuse is pure self-delusion. Every hour you spend putting this off is an hour you carry the guilt of avoiding it.`,
-        action: `Mute all distractions and tackle "${trimmedText}" for 300 seconds right now.`
-      };
-    } else if (tone === 'funny') {
-      responseData = {
-        callout: `"${trimmedText}" — An Oscar-worthy piece of fiction! Your brain wrote an entire dramatic screenplay just to avoid 5 minutes of real labor.`,
-        action: `Work on "${trimmedText}" for 5 minutes while humming a dramatic superhero battle theme.`
-      };
-    }
-  }
-  
-  let actionResult = responseData.action;
-  if (state.roadmapMode) {
-    if (category === 'gym') {
-      actionResult = [
-        "Locate workout clothing and place them directly in front of you.",
-        "Put on your training shoes and tie them immediately.",
-        "Walk outside the door and set a timer to movement for 5 minutes."
-      ];
-    } else if (category === 'coding') {
-      actionResult = [
-        "Open your code editor and close any web browser tabs that distract you.",
-        "Create a single file 'app_test.js' or 'index.html' locally.",
-        "Write a 3-line boilerplate function that logs a victory statement."
-      ];
-    } else if (category === 'clean') {
-      actionResult = [
-        "Locate three loose items lying out of place on the floor/desk.",
-        "Return all three items to their correct storage location.",
-        "Use a wet cloth or wipe to clean down your active desk surface."
-      ];
-    } else {
-      actionResult = [
-        `Write down the single micro-step needed to start "${trimmedText}".`,
-        `Open the required tools, app, or workspace for "${trimmedText}".`,
-        `Execute 5 minutes of focused action without looking at your phone.`
-      ];
-    }
-  }
-
-  return {
-    excuse: excuseName,
-    callout: responseData.callout,
-    action: actionResult
-  };
-}
 
 // Call Gemini API (using client-side fetch)
 async function callGeminiAPI(excuseText, tone, apiKey) {

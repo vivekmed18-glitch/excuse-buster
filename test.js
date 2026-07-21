@@ -13,6 +13,8 @@ const { chromium } = require('playwright');
   console.log(`Navigating to target URL: ${targetUrl}...`);
   await page.goto(targetUrl);
   
+
+
   console.log('Verifying page title...');
   const title = await page.title();
   console.log(`Page title: "${title}"`);
