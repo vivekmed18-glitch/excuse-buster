@@ -159,7 +159,7 @@ Optional external AI engines can also be configured through the settings panel. 
 
 ---
 
-## 🤖 How Antigravity / Codex Was Used
+## 🤖 How  Codex Was Used
 Antigravity (built on Codex/Gemini models) was used as the primary implementation and iteration partner for Excuse Buster.
 
 It accelerated development by helping to:
